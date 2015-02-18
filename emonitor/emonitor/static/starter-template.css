@@ -1,0 +1,27 @@
+body {
+  padding-top: 30px;
+}
+.main {
+  padding: 20px 15px;
+  text-align: center;
+}
+.ehidden {
+    /*display:none;*/
+    opacity: 0;
+}
+.evisible {
+    /*display:block;*/
+    opacity: 1;
+}
+.efade {
+    transition: opacity .25s ease-in-out;
+    -moz-transition: opacity .25s ease-in-out;
+    -webkit-transition: opacity .25s ease-in-out;
+}
+
+.eoff {
+    display:none;
+}
+.eon {
+    display:block;
+}
