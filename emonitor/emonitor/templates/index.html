@@ -39,9 +39,9 @@
           <ul class="nav navbar-nav">
             <li class="active"><a href="/" onClick="return linkAjax(this);">Download</a></li>
             <li><a href="/about" onClick="return linkAjax(this);">About</a></li>
-            <li><a href="/signin" onClick="return linkAjax(this);">Sign In</a></li>
-            <li><a href="/login" onClick="return linkAjax(this);">Log In</a></li>
-            <li><a href="/logout" onClick="return linkAjax(this);">Log Out</a></li>
+            <li id="li-signin"><a href="/signin" onClick="return linkAjax(this);">Sign In</a></li>
+            <li id="li-login"><a href="/login" onClick="return linkAjax(this);">Log In</a></li>
+            <li id="li-logout"><a href="/logout" onClick="return linkAjax(this);">Log Out</a></li>
             <li><a href="/" id="liusername" onClick="return linkAjax(this);">Test</a></li>
           </ul>
         </div><!--/.nav-collapse -->
@@ -110,6 +110,8 @@
 <script>
 //window.location.pathname
 
+var loginform = false;
+
 function linkAjax(anchor) {
     //console.log(anchor.href);
     history.pushState(null, anchor.textContent, anchor.href)
@@ -122,15 +124,27 @@ function signIn(form){
     var email = $("#email")[0].value;
     var pass = $("#password")[0].value;
 
-    $.ajax({
-        type: "POST",
-        url: "api/user",
-        data: { username: username, email: email, pass: pass  },
-        dataType: "json"
-    })
-    .done(function( msg ) {
-        console.log(msg);
-    });
+    if (loginform === true) {
+        $.ajax({
+            type: "GET",
+            url: "api/user",
+            data: { username: username, pass: pass  },
+            dataType: "json"
+        })
+        .done(function( msg ) {
+            console.log(msg);
+        });
+    } else {
+        $.ajax({
+            type: "POST",
+            url: "api/user",
+            data: { username: username, email: email, pass: pass  },
+            dataType: "json"
+        })
+        .done(function( msg ) {
+            console.log(msg);
+        });
+    }
     return false;
 }
 
@@ -146,7 +160,17 @@ function getInfo(){
     })
     .done(function( msg ) {
         console.log(msg);
-        $('#liusername').html(msg['username']);
+        if (msg!=null) {
+            $('#liusername').html(msg['username']);
+            $('#li-login').hide();
+            $('#li-signin').hide();
+            $('#li-logout').show();
+        } else {
+            $('#liusername').html('');
+            $('#li-login').show();
+            $('#li-signin').show();
+            $('#li-logout').hide(); 
+        }
     });
 
     //alert(window.location.pathname);
@@ -171,12 +195,14 @@ function getInfo(){
         $("#welcome-text").removeClass("eon");
         $("#user-form-text").addClass("eon");
         $('#form-email').hide();
+        loginform = true;
     } else if (page=='/signin') {
         $("#main").addClass("evisible");
         $("#job-text").removeClass("eon");
         $("#welcome-text").removeClass("eon");
         $("#user-form-text").addClass("eon");
         $('#form-email').show();
+        loginform = false;
     } else {
         $("#main").addClass("evisible");
         $("#job-text").addClass("eon");

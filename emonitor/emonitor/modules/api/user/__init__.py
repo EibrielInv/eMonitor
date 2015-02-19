@@ -51,15 +51,22 @@ class UserListApi(Resource):
             return {'rmsg':'Database error'}, 500
 
     def get(self):
+        renderUsers = MongoConnection.connect()
+        data_user = None
+        username = request.args.get('username', 0, type=str)
+        pass_ = request.args.get('pass', 0, type=str)
         if 'username' in session:
-            renderUsers = MongoConnection.connect()
             data_user=renderUsers.find_one({'username':session['username']})
+        elif username and pass_:
+            data_user=renderUsers.find_one({'username':username, 'pass':pass_})
+        if data_user:
+            if not 'username' in session:
+                session['username'] = username
             data_array = {
                 'username':data_user['username'],
                 'email':data_user['email'],
             }
-            if data_user:
-                return data_array, 200
+            return data_array, 200
 
         return {'rmsg':'Auth error'}, 500
 
