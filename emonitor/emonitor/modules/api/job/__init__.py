@@ -68,7 +68,7 @@ class JobApi(Resource):
             file = request.files.get('images')
             if file and self.allowed_file(file.filename):
                 filename = "{0}.png".format(job_id)
-                file.save(os.path.join('/home/gabriel/dev/emonitor/eMonitor/emonitor/emonitor/static/thumbnails/', filename))
+                file.save(os.path.join(app.config['THUMBNAIL_STORAGE'], filename))
         except:
             print ("Error reading file")
 
