@@ -86,7 +86,7 @@ class eibrielMonitor (bpy.types.Operator):
         self.api_url = "http://localhost:5000"
 
         if self.render_status == "JOB_START":
-            apiurl = "{0}/api".format(self.api_url)
+            apiurl = "{0}/api/job".format(self.api_url)
             r = requests.post(apiurl, data = emon_data.array())
             if r.status_code != 200:
                 print("Error")
@@ -100,11 +100,13 @@ class eibrielMonitor (bpy.types.Operator):
             wm.emonitor_JobUUID = jobuuid
             bpy.ops.wm.url_open(url = "{0}/{1}".format(self.api_url, jobuuid))
         elif self.render_status in ["RENDER_UPDATE", "RENDER_END", "JOB_CANCELLED"]:
-            filepath='/home/gabriel/Escritorio/thumbnail.png'
+            juuid = wm.emonitor_JobUUID
+            tmpfolder = context.user_preferences.filepaths.temporary_directory
+            filepath = os.path.join(
+                tmpfolder, 'thumbnail_{0}.png'.format(juuid))
             bpy.data.images["Render Result"].save_render(filepath)
             render_file = [('images', ('thumbnail.png', open(filepath, 'rb'), 'image/png'))]
-            juuid = wm.emonitor_JobUUID
-            apiurl = "{0}/api/{1}".format(self.api_url, juuid)
+            apiurl = "{0}/api/job/{1}".format(self.api_url, juuid)
             r = requests.patch(apiurl, files = render_file , data = emon_data.array())
             if r.status_code != 200:
                 print("Error")
@@ -114,7 +116,7 @@ class eibrielMonitor (bpy.types.Operator):
             rlist = json.loads(r.text)
         else:
             juuid = wm.emonitor_JobUUID
-            apiurl = "{0}/api/{1}".format(self.api_url, juuid)
+            apiurl = "{0}/api/job/{1}".format(self.api_url, juuid)
             r = requests.patch(apiurl, data = emon_data.array())
             if r.status_code != 200:
                 print("Error")
@@ -137,7 +139,7 @@ def render_pre(scene):
     print("Start Render")
     url = "http://team.eibriel.com"
     bpy.ops.emonitor.update(api_url = url, render_status = "RENDER_START")
-    start_thread()
+    #start_thread()
 
 @persistent
 def scene_update_pre(scene):
@@ -156,7 +158,10 @@ def thread_update():
     while wm.emonitor_RenderingFrame:
         print("Threaded Update *")
         url = "http://team.eibriel.com"
-        bpy.ops.emonitor.update(api_url = url, render_status = "RENDER_UPDATE")
+        try:
+            bpy.ops.emonitor.update(api_url = url, render_status = "RENDER_UPDATE")
+        except RuntimeError:
+            print ("Runtime Error")
         time.sleep(30)
 
 @persistent

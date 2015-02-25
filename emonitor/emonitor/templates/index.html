@@ -37,12 +37,7 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="/" onClick="return linkAjax(this);">Download</a></li>
-            <li><a href="/about" onClick="return linkAjax(this);">About</a></li>
-            <li id="li-signin"><a href="/signin" onClick="return linkAjax(this);">Sign In</a></li>
-            <li id="li-login"><a href="/login" onClick="return linkAjax(this);">Log In</a></li>
-            <li id="li-logout"><a href="/logout" onClick="return linkAjax(this);">Log Out</a></li>
-            <li><a href="/" id="liusername" onClick="return linkAjax(this);">Test</a></li>
+            <li class="active"><a href="http://cgcookiemarkets.com/blender/" target="_blank">Download addon</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -51,12 +46,12 @@
     <div class="container">
 
       <div id="main" class="main efade ehidden">
-        <div id="welcome-text" class="eoff">
+        <div id="welcome-text">
             <h1>Monitor your render</h1>
-            <p class="lead">Download the addon and see your render right here.<br> Nothing to worry about when you left your render alone.</p>
+            <p class="lead"><a href="http://cgcookiemarkets.com/blender/" target="_blank">Download</a> the addon and see your render right here.<br> Nothing to worry about when you left your render alone.</p>
         </div>
 
-        <div id="job-text" class="eoff">
+        <div id="job-text">
             <h1 id="job_name"></h1>
             <p id="job_info"></p>
             <div class="progress">
@@ -66,33 +61,19 @@
             </div>
             <div  class="thumbnail">
                 <img id="main-pic" src="/static/thumbnail/" alt="Demo picture by Manu Järvien for Gooseberry Project" />
-                <div class="caption">
-                    <p>Demo picture by Manu Järvien for <a href="http://gooseberry.blender.org">Gooseberry Project</a></p>
+                <div class="caption" id="caption">
+                    <p>Demo picture by Manu Järvien for Gooseberry Project</p>
                 </div>
+            </div>
+            <div>
+                <p>
+                    <a id="twitterlink" class="btn btn-primary" href="" target="_blank">Share on Twitter</a>
+                </p>
             </div>
             <ul class="list-group" id="propertie_list">
             </ul>
         </div>
 
-        <form method="post" onsubmit="return signIn(this);">
-            <div id="user-form-text" class="eoff">
-                <h1>Sign in</h1>
-                <div class="form-group">
-                    <label for="username" class="sr-only">Username</label>
-                    <input type="text" name="username" id="username" class="form-control" placeholder="Username">
-                </div>
-                <div class="form-group" id="form-email">
-                    <label for="email" class="sr-only">EMail</label>
-                    <input type="text" name="email" id="email" class="form-control" placeholder="example@example.com">
-                </div>
-                <div class="form-group">
-                    <label for="password" class="sr-only">Password</label>
-                    <input type="password" name="password" id="password" class="form-control">
-                </div>
-                <button type="submit" class="btn btn-default">Sign in</button>
-                <button type="reset" class="btn btn-default">Cancel</button>
-            </div>
-        </form>
       </div>
 
     </div><!-- /.container -->
@@ -108,9 +89,9 @@
   </body>
 
 <script>
-//window.location.pathname
 
-var loginform = false;
+var siteurl = 'http://monitor.eibriel.com/';
+var title = 'eMonitor';
 
 function linkAjax(anchor) {
     //console.log(anchor.href);
@@ -119,95 +100,71 @@ function linkAjax(anchor) {
     return false;
 }
 
-function signIn(form){
-    var username = $("#username")[0].value;
-    var email = $("#email")[0].value;
-    var pass = $("#password")[0].value;
-
-    if (loginform === true) {
-        $.ajax({
-            type: "GET",
-            url: "api/user",
-            data: { username: username, pass: pass  },
-            dataType: "json"
-        })
-        .done(function( msg ) {
-            console.log(msg);
-        });
-    } else {
-        $.ajax({
-            type: "POST",
-            url: "api/user",
-            data: { username: username, email: email, pass: pass  },
-            dataType: "json"
-        })
-        .done(function( msg ) {
-            console.log(msg);
-        });
-    }
-    return false;
-}
-
-function checkPage(){
-
-}
-
 function getInfo(){
+    var page = window.location.pathname;
+    //$("#main").addClass("evisible");
+    //$("#job-text").addClass("eon");
+    //$("#welcome-text").removeClass("eon");
+    //$("#user-form-text").removeClass("eon");
+
+    var uuid=''
+    if (page=='/') {
+        uuid='54e00a9a16a24e3e56886d67'
+    } else {
+        uuid=page.substring (1);
+        $('#welcome-text').hide();
+    }
+
+    var twitter="https://twitter.com/intent/tweet?";
+    if (page=='/') {
+        twitteruuid = '';
+    } else {
+        twitteruuid = uuid;
+    }
+    twitter = twitter+'original_referer='+siteurl+twitteruuid+'&url='+siteurl+twitteruuid+'&text='+title;
+    $("#twitterlink").attr("href", twitter);
+
     $.ajax({
         type: "GET",
-        url: "api/user",
+        url: "api/job/"+uuid,
         dataType: "json"
     })
     .done(function( msg ) {
-        console.log(msg);
-        if (msg!=null) {
-            $('#liusername').html(msg['username']);
-            $('#li-login').hide();
-            $('#li-signin').hide();
-            $('#li-logout').show();
-        } else {
-            $('#liusername').html('');
-            $('#li-login').show();
-            $('#li-signin').show();
-            $('#li-logout').hide(); 
-        }
-    });
+        $("#job_name").html(msg['name']);
+        $("#job_info").html(msg['renderdata']);
 
-    //alert(window.location.pathname);
-    var page = window.location.pathname;
-    //if (page=='/') {
-        //$("#welcome-text").removeClass("ehidden");
-    //    $("#main").addClass("evisible");
-    //    $("#welcome-text").addClass("eon");
-    //    $("#job-text").removeClass("eon");
-    if (page=='/logout') {
-        $.ajax({
-            type: "GET",
-            url: "api/user/logout",
-            dataType: "json"
-        })
-        .done(function (msg) {
-            console.log(msg);
-        });
-    } else if (page=='/login') {
-        $("#main").addClass("evisible");
-        $("#job-text").removeClass("eon");
-        $("#welcome-text").removeClass("eon");
-        $("#user-form-text").addClass("eon");
-        $('#form-email').hide();
-        loginform = true;
-    } else if (page=='/signin') {
-        $("#main").addClass("evisible");
-        $("#job-text").removeClass("eon");
-        $("#welcome-text").removeClass("eon");
-        $("#user-form-text").addClass("eon");
-        $('#form-email').show();
-        loginform = false;
-    } else {
-        $("#main").addClass("evisible");
-        $("#job-text").addClass("eon");
-        $("#welcome-text").removeClass("eon");
-        $("#user-form-text").removeClass("eon");
+        list='';
+        for (n in msg) {
+            list=list+'<li class="list-group-item">'+n+': '+msg[n]+'</li>';
+        }
+        $("#propertie_list").html(list);
+
+        frame_end = parseInt(msg['frame_end']);
+        frame_start = parseInt(msg['frame_start']);
+        frame_current = parseInt(msg['frame_current']);
+
+        var percent = 0;
+        console.log(msg['frame_end']);
+        var add = 0;
+        if (msg['status']!='RENDER_END') {
+            add = 1;
+        }
+        if (frame_end+add-frame_start != 0) {
+            percent = (100/(frame_end+add-frame_start))*(frame_current-frame_start);
+            percent = Math.round(percent);
+        } else {
+            percent = 100;
+        }
+        if (frame_current>frame_end || frame_current<frame_start) {
+            if (msg['status']!='RENDER_END') {
+                percent = 0;
+            } else {
+                percent = 100;
+            }
+        }
+        //console.log(percent);
+        $("#main-progress-bar").css('width', percent+'%');
+        $("#main-progress-bar").html(percent+'%');
 
         var uuid=''
         if (page=='/') {
@@ -215,52 +172,18 @@ function getInfo(){
         } else {
             uuid=page.substring (1);
         }
+        $('#main-pic').attr('src', '/static/thumbnails/'+uuid+'.png');
 
-        $.ajax({
-            type: "GET",
-            url: "api/"+uuid,
-            //data: { get: "" },
-            dataType: "json"
-        })
-        .done(function( msg ) {
-            //alert( "Data Saved: " + msg );
-            $("#job_name").html(msg['name']);
-            $("#job_info").html(msg['renderdata']);
-
-            list='';
-            for (n in msg) {
-                list=list+'<li class="list-group-item">'+n+': '+msg[n]+'</li>';
-            }
-            $("#propertie_list").html(list);
-
-            frame_end = parseInt(msg['frame_end']);
-            frame_start = parseInt(msg['frame_start']);
-            frame_current = parseInt(msg['frame_current']);
-
-            console.log(msg['frame_end']);
-            var percent = (100/(frame_end-frame_start))*(frame_current-frame_start);
-            percent = Math.round(percent);
-            //console.log(percent);
-            $("#main-progress-bar").css('width', percent+'%');
-            $("#main-progress-bar").html(percent+'%');
-
-            var uuid=''
-            if (page=='/') {
-                uuid='54e00a9a16a24e3e56886d67'
-            } else {
-                uuid=page.substring (1);
-            }
-            $('#main-pic').attr('src', '/static/thumbnails/'+uuid+'.png');
-
-        });
-    }
+    });
 }
 
 $(function() {
     //Start monitoring
     getInfo();
-    checkPage();
-    setInterval ( getInfo, 2000 );
+    setInterval ( getInfo, 10000 );
 });
+
+$("#main").addClass("evisible");
+
 </script>
 </html>
