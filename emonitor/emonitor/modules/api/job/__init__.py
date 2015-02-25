@@ -2,10 +2,11 @@ import os
 from pymongo import MongoClient
 from bson import ObjectId
 from flask import request
+from flask import send_from_directory
 #from flask.ext.restful import Api
 from flask.ext.restful import Resource
 
-#from emonitor import app
+from emonitor import app
 from emonitor.modules.emonitor_data import emonitor_data
 
 
@@ -50,7 +51,7 @@ class JobApi(Resource):
             filename.rsplit('.', 1)[1] in ['png']
 
     def patch(self, job_id=None):
-        from werkzeug import secure_filename
+        # from werkzeug import secure_filename
 
         renderJobs = MongoConnection.connect()
         emon_data = emonitor_data()
@@ -73,3 +74,12 @@ class JobApi(Resource):
 
         key = {'_id':ObjectId(job_id)}
         renderJobs.update(key, {'$set':emon_data.array_update()})
+
+class JobThumbnailApi(Resource):
+    def get(self, job_id):
+        """Given a job_id returns the output file
+        """
+        jobpath = app.config['THUMBNAIL_STORAGE']
+        print (jobpath)
+        imagename = "{0}.png".format(job_id)
+        return send_from_directory(jobpath, imagename)

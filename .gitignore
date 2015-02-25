@@ -55,3 +55,6 @@ target/
 
 # VIM stuff
 .ropeproject/
+
+# Server stuff
+local.py

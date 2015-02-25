@@ -172,7 +172,7 @@ function getInfo(){
         } else {
             uuid=page.substring (1);
         }
-        $('#main-pic').attr('src', '/static/thumbnails/'+uuid+'.png');
+        $('#main-pic').attr('src', '/api/job/thumbnail/'+uuid);
 
     });
 }
