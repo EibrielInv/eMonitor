@@ -62,7 +62,8 @@ class JobApi(Resource):
         emon_data.sequencer = request.form['sequencer']
         emon_data.frame_start = request.form['frame_start']
         emon_data.frame_end = request.form['frame_end']
-        emon_data.frame_current = request.form['frame_current']
+        if 'frame_current' in request.form:
+            emon_data.frame_current = request.form['frame_current']
 
         try:
             file = request.files.get('images')
@@ -80,6 +81,5 @@ class JobThumbnailApi(Resource):
         """Given a job_id returns the output file
         """
         jobpath = app.config['THUMBNAIL_STORAGE']
-        print (jobpath)
         imagename = "{0}.png".format(job_id)
         return send_from_directory(jobpath, imagename)

@@ -84,6 +84,7 @@ class eibrielMonitor (bpy.types.Operator):
             wm.emonitor_RenderingFrame = True
 
         self.api_url = "http://localhost:5000"
+        self.api_url = "http://monitor.eibriel.com"
 
         if self.render_status == "JOB_START":
             apiurl = "{0}/api/job".format(self.api_url)
@@ -119,8 +120,8 @@ class eibrielMonitor (bpy.types.Operator):
             apiurl = "{0}/api/job/{1}".format(self.api_url, juuid)
             r = requests.patch(apiurl, data = emon_data.array())
             if r.status_code != 200:
-                print("Error")
-                #print (apiurl)
+                print("Error: {0}".format(r.status_code))
+                #print (r.text)
                 #print(emon_data.array())
                 return {'FINISHED'}
             rlist = json.loads(r.text)

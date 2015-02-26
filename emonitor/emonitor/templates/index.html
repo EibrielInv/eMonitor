@@ -162,6 +162,9 @@ function getInfo(){
                 percent = 100;
             }
         }
+        if (msg['status']=='RENDER_COMPLETE') {
+            percent = 100;
+        }
         //console.log(percent);
         $("#main-progress-bar").css('width', percent+'%');
         $("#main-progress-bar").html(percent+'%');
