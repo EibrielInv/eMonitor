@@ -1,0 +1,6 @@
+[submodule "emonitor/emonitor/modules/--force"]
+	path = emonitor/emonitor/modules/--force
+	url = https://github.com/Eibriel/eMongo.git
+[submodule "emonitor/emonitor/modules/eMongo"]
+	path = emonitor/emonitor/modules/eMongo
+	url = https://github.com/Eibriel/eMongo.git
