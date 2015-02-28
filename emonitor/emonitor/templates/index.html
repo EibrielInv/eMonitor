@@ -21,6 +21,13 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+
+    <link rel="alternate" type="application/json+oembed"
+    href="http://monitor.eibriel.com/api/job/oembed?url=http%3A%2F%2Fmonitor.eibriel.com%2F{{ job_id }}&format=json"
+  title="eMonitor" />
+    <link rel="alternate" type="text/xml+oembed"
+    href="http://monitor.eibriel.com/api/job/oembed?url=http%3A%2F%2Fmonitor.eibriel.com%2F{{ job_id }}&format=xml"
+  title="eMonitor" />
   </head>
   <body>
 
@@ -145,7 +152,7 @@ function getInfo(){
     twitter = twitter+'original_referer='+siteurl+twitteruuid+'&url='+siteurl+twitteruuid+'&text='+title;
     $("#twitterlink").attr("href", twitter);
 
-    if (rstatus == 'RENDER_COMPLETE' || rstatus == 'RENDER_CANCELLED') {
+    if (rstatus == 'RENDER_COMPLETE' || rstatus == 'JOB_CANCELLED') {
         return;
     }
 
@@ -208,10 +215,13 @@ function getInfo(){
         }
         if (msg['status']=='RENDER_COMPLETE') {
             percent = 100;
-        }
+         }
         //console.log(percent);
         if (percent==100) {
             $("#main-progress-bar").addClass("progress-bar-success");
+        } else if (msg['status']=='JOB_CANCELLED') {
+            $("#main-progress-bar").addClass("progress-bar-warning");
+        } else if (msg['status']=='JOB_CANCELLED') {
         }
         $("#main-progress-bar").css('width', percent+'%');
         $("#main-progress-bar").html(percent+'%');

@@ -20,6 +20,10 @@ function loadSequence() {
     var page = window.location.pathname;
     uuid=page.substring(7);
 
+    if (uuid=="") {
+        return;
+    }
+
     $.ajax({
         type: "GET",
     url: "/api/job/"+uuid,
