@@ -106,7 +106,8 @@ class JobOembedApi(Resource):
         """oEmbed support"""
         args = oem_parser.parse_args()
         uuid = args['url'].split('/')[-1]
-        html = '<iframe src="http://monitor.eibriel.com/movie/{0}">\
+        html = '<iframe style="margin:0px; padding:0px; border:0px;"\
+src="http://monitor.eibriel.com/movie/{0}">\
 </iframe>'.format(uuid)
         params = {
             'type': 'video',
