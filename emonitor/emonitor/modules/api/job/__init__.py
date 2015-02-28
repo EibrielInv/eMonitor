@@ -9,7 +9,6 @@ from flask.ext.restful import Resource
 from flask.ext.restful import reqparse
 
 from emonitor import app
-from emonitor.modules.emonitor_data import emonitor_data
 from emonitor.modules.eMongo import Document
 
 
