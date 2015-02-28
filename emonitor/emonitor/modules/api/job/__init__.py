@@ -14,8 +14,8 @@ from emonitor.modules.eMongo import Document
 
 oem_parser = reqparse.RequestParser()
 oem_parser.add_argument('url', type=str, required=True)
-oem_parser.add_argument('maxwidth', type=int, default=200)
-oem_parser.add_argument('maxheight', type=int, default=300)
+oem_parser.add_argument('maxwidth', type=int, default=300)
+oem_parser.add_argument('maxheight', type=int, default=200)
 oem_parser.add_argument('format', type=str)
 
 
