@@ -12,7 +12,7 @@ from emonitor.modules.api.job import JobApi
 from emonitor.modules.api.job import JobThumbnailApi
 api.add_resource(JobListApi, '/api/job')
 api.add_resource(JobApi, '/api/job/<job_id>')
-api.add_resource(JobThumbnailApi, '/api/job/thumbnail/<job_id>')
+api.add_resource(JobThumbnailApi, '/api/job/thumbnail/<job_id>/<frame>')
 
 from emonitor.modules.main import main
 app.register_blueprint(main)

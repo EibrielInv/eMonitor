@@ -55,21 +55,26 @@ class JobApi(Resource):
 
         renderJobs = MongoConnection.connect()
         emon_data = emonitor_data()
-        emon_data.status = request.form['status']
-        emon_data.engine = request.form['engine']
-        emon_data.freestyle = request.form['freestyle']
-        emon_data.compositor = request.form['compositor']
-        emon_data.sequencer = request.form['sequencer']
-        emon_data.frame_start = request.form['frame_start']
-        emon_data.frame_end = request.form['frame_end']
+        emon_data.status = str(request.form['status'])
+        emon_data.engine = str(request.form['engine'])
+        emon_data.freestyle = request.form['freestyle']=="True"
+        emon_data.compositor = request.form['compositor']=="True"
+        emon_data.sequencer = request.form['sequencer']=="True"
+        emon_data.frame_start = int(request.form['frame_start'])
+        emon_data.frame_end = int(request.form['frame_end'])
         if 'frame_current' in request.form:
-            emon_data.frame_current = request.form['frame_current']
+            emon_data.frame_current = int(request.form['frame_current'])
 
+        jobpath = os.path.join(app.config['THUMBNAIL_STORAGE'], job_id)
+        if not os.path.exists(jobpath):
+            os.mkdir(jobpath)
         try:
             file = request.files.get('images')
             if file and self.allowed_file(file.filename):
-                filename = "{0}.png".format(job_id)
-                file.save(os.path.join(app.config['THUMBNAIL_STORAGE'], filename))
+                filename = "{0}_{1}.png".format(
+                    job_id, request.form['frame_current'])
+                fullname = os.path.join(jobpath, filename)
+                file.save(fullname)
         except:
             print ("Error reading file")
 
@@ -77,9 +82,9 @@ class JobApi(Resource):
         renderJobs.update(key, {'$set':emon_data.array_update()})
 
 class JobThumbnailApi(Resource):
-    def get(self, job_id):
+    def get(self, job_id, frame):
         """Given a job_id returns the output file
         """
-        jobpath = app.config['THUMBNAIL_STORAGE']
-        imagename = "{0}.png".format(job_id)
+        jobpath = os.path.join(app.config['THUMBNAIL_STORAGE'], job_id)
+        imagename = "{0}_{1}.png".format(job_id, frame)
         return send_from_directory(jobpath, imagename)

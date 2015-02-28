@@ -10,3 +10,6 @@ def index(job_id=None):
     return render_template('index.html')
 
 
+@main.route('/movie/<job_id>')
+def movie(job_id=None):
+    return render_template('movie.html')

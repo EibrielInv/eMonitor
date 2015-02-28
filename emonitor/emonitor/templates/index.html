@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Monitor your render">
     <meta name="author" content="Eibriel">
-    <link rel="icon" href="../../favicon.ico">
+    <link rel="icon" href="/static/favicon.ico">
 
     <title>eMonitor</title>
 
@@ -33,11 +33,13 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">eMonitor</a>
+          <a class="navbar-brand ebrand" href="/"><img alt="eMonitor" src="/static/pic/eibriel.svg" style="width:20px;"/></a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="http://cgcookiemarkets.com/blender/" target="_blank">Download addon</a></li>
+            <li class=""><a href="/static/eibriel_monitor.zip" target="_blank">Download addon</a></li>
+            <li class=""><a href="/">Donate</a></li>
+            <li class=""><a href="/">Help</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -48,7 +50,7 @@
       <div id="main" class="main efade ehidden">
         <div id="welcome-text">
             <h1>Monitor your render</h1>
-            <p class="lead"><a href="http://cgcookiemarkets.com/blender/" target="_blank">Download</a> the addon and see your render right here.<br> Nothing to worry about when you left your render alone.</p>
+            <p class="lead"><a href="/static/eibriel_monitor.zip" target="_blank">Download</a> the addon and see your render right here.<br> Nothing to worry about when you left your render alone.</p>
         </div>
 
         <div id="job-text">
@@ -59,16 +61,32 @@
                 0%
                 </div>
             </div>
-            <div  class="thumbnail">
-                <img id="main-pic" src="/static/thumbnail/" alt="Demo picture by Manu Järvien for Gooseberry Project" />
+            <!--<div class="thumbnail">
+                <img id="main-pic" src="/static/thumbnail/" alt="" />
                 <div class="caption" id="caption">
-                    <p>Demo picture by Manu Järvien for Gooseberry Project</p>
+                    <p></p>
                 </div>
+            </div>-->
+            <div class="embed-responsive embed-responsive-16by9">
+                <iframe id="main-pic" class="embed-responsive-item" src="/movie/"></iframe>
             </div>
             <div>
                 <p>
-                    <a id="twitterlink" class="btn btn-primary" href="" target="_blank">Share on Twitter</a>
+                    <!--<a id="twitterlink" class="btn btn-primary" href=""
+                        target="_blank">Share on Twitter</a>-->
+                    <div class="btn-group">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                        Share <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">Diaspora*</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">EMail</a></li>
+                    </ul>
+                    </div>
                 </p>
+                <!-- Single button -->
             </div>
             <ul class="list-group" id="propertie_list">
             </ul>
@@ -92,6 +110,9 @@
 
 var siteurl = 'http://monitor.eibriel.com/';
 var title = 'eMonitor';
+
+var rstatus = "";
+var movie = "";
 
 function linkAjax(anchor) {
     //console.log(anchor.href);
@@ -124,6 +145,10 @@ function getInfo(){
     twitter = twitter+'original_referer='+siteurl+twitteruuid+'&url='+siteurl+twitteruuid+'&text='+title;
     $("#twitterlink").attr("href", twitter);
 
+    if (rstatus == 'RENDER_COMPLETE' || rstatus == 'RENDER_CANCELLED') {
+        return;
+    }
+
     $.ajax({
         type: "GET",
         url: "api/job/"+uuid,
@@ -133,15 +158,34 @@ function getInfo(){
         $("#job_name").html(msg['name']);
         $("#job_info").html(msg['renderdata']);
 
-        list='';
+        var list='';
+        var item='';
         for (n in msg) {
-            list=list+'<li class="list-group-item">'+n+': '+msg[n]+'</li>';
+            //alert(typeof(msg[n]));
+            item = "";
+            itype = typeof(msg[n]);
+            if (itype == "string") {
+                item='<span class="epropname">'+n+'</span>: '+msg[n];
+            } else if (itype == "boolean") {
+                if (msg[n]) {
+                    label = "label-success";
+                } else {
+                    label = "label-default";
+                }
+                item='<span class="label '+label+'">'+n+'</span>';
+            } else {
+                item='<span class="epropname">'+n+'</span>: '+msg[n];
+            }
+            item='<li class="list-group-item">'+item+'</li>';
+            list=list+item;
         }
         $("#propertie_list").html(list);
 
         frame_end = parseInt(msg['frame_end']);
         frame_start = parseInt(msg['frame_start']);
         frame_current = parseInt(msg['frame_current']);
+
+        rstatus = msg['status']
 
         var percent = 0;
         console.log(msg['frame_end']);
@@ -166,6 +210,9 @@ function getInfo(){
             percent = 100;
         }
         //console.log(percent);
+        if (percent==100) {
+            $("#main-progress-bar").addClass("progress-bar-success");
+        }
         $("#main-progress-bar").css('width', percent+'%');
         $("#main-progress-bar").html(percent+'%');
 
@@ -175,7 +222,11 @@ function getInfo(){
         } else {
             uuid=page.substring (1);
         }
-        $('#main-pic').attr('src', '/api/job/thumbnail/'+uuid);
+        msrc = '/movie/'+uuid;
+        if (msrc != movie || 1) {
+            $('#main-pic').attr('src', '/movie/'+uuid);
+            movie = msrc;
+        }
 
     });
 }

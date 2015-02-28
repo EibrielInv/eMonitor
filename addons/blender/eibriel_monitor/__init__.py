@@ -19,7 +19,7 @@
 bl_info = {
     "name": "eMonitor",
     "author": "Eibriel",
-    "version": (0, 1),
+    "version": (0, 2),
     "blender": (2, 73, 0),
     "location": "Image > Send to eMonitor",
     "description": "Monitor your render on the Web",
@@ -82,14 +82,24 @@ class eMonitorUpdate (bpy.types.Operator):
     bl_idname = "emonitor.update"
     bl_label = "eMonitor update"
 
-    api_url = bpy.props.StringProperty(
-        name="eMonitor API URL", default="")
+    api_url = ""
+
     render_status = bpy.props.StringProperty(
         name="eMonitor Render Status", default="")
 
     @classmethod
     def poll(self, context):
-        return self.api_url != "" or self.render_status != ""
+        scn = context.scene
+        do = True
+        if self.render_status == "":
+            do = False
+        if bpy.app.background:
+            do = False
+
+        if scn.render.use_sequencer and scn.sequence_editor:
+            if len(scn.sequence_editor.sequences.items())>0:
+                do = False
+        return do
 
     def get_data(self):
         # scene = context.scene
@@ -99,6 +109,9 @@ class eMonitorUpdate (bpy.types.Operator):
         scene = context.scene
         D = bpy.data
         wm = bpy.context.window_manager
+
+        if not wm.emonitor_enabled:
+            return {'FINISHED'}
 
         if D.filepath == '':
             file = 'untitled'
@@ -123,7 +136,6 @@ class eMonitorUpdate (bpy.types.Operator):
         if self.render_status == "RENDER_START":
             wm.emonitor_RenderingFrame = True
 
-        self.api_url = "http://localhost:5000"
         self.api_url = "http://monitor.eibriel.com"
 
         if self.render_status == "JOB_START":
@@ -163,15 +175,15 @@ class eMonitorUpdate (bpy.types.Operator):
 @persistent
 def render_init(scene):
     logging.debug("Start Job")
-    url="http://team.eibriel.com"
-    bpy.ops.emonitor.update(api_url = url, render_status = "JOB_START")
+    if bpy.ops.emonitor.update.poll():
+       bpy.ops.emonitor.update(render_status = "JOB_START")
 
 
 @persistent
 def render_pre(scene):
     logging.debug("Start Render")
-    url = "http://team.eibriel.com"
-    bpy.ops.emonitor.update(api_url = url, render_status = "RENDER_START")
+    if bpy.ops.emonitor.update.poll():
+        bpy.ops.emonitor.update(render_status = "RENDER_START")
 
 
 @persistent
@@ -179,8 +191,8 @@ def render_post(scene):
     wm = bpy.context.window_manager
     logging.debug("End Render")
     wm.emonitor_RenderingFrame=False
-    url = "http://team.eibriel.com"
-    bpy.ops.emonitor.update(api_url = url, render_status = "RENDER_END")
+    if bpy.ops.emonitor.update.poll():
+        bpy.ops.emonitor.update(render_status = "RENDER_END")
 
 
 @persistent
@@ -189,8 +201,8 @@ def render_cancel(scene):
     logging.debug("Job Cancelled")
     wm.emonitor_RenderingJob=False
     wm.emonitor_RenderingFrame=False
-    url = "http://team.eibriel.com"
-    bpy.ops.emonitor.update(api_url = url, render_status = "JOB_CANCELLED")
+    if bpy.ops.emonitor.update.poll():
+        bpy.ops.emonitor.update(render_status = "JOB_CANCELLED")
 
 @persistent
 def render_complete(scene):
@@ -198,8 +210,8 @@ def render_complete(scene):
     logging.debug("Job Completed")
     wm.emonitor_RenderingJob=False
     wm.emonitor_RenderingFrame=False
-    url = "http://team.eibriel.com"
-    bpy.ops.emonitor.update(api_url = url, render_status = "RENDER_COMPLETE")
+    if bpy.ops.emonitor.update.poll():
+        bpy.ops.emonitor.update(render_status = "RENDER_COMPLETE")
 
 @persistent
 def render_write(scene):
@@ -208,7 +220,8 @@ def render_write(scene):
 def buttons_emonitor(self, context):
     wm = bpy.context.window_manager
     self.layout.separator()
-    self.layout.operator("emonitor.open", "Monitor")
+    prop = self.layout.operator("emonitor.open", "Monitor")
+    prop.share = 'NONE'
     prop = self.layout.operator("emonitor.open", "Tweet")
     prop.share = 'TWITTER'
     prop = self.layout.operator("emonitor.open", "Diaspora")
@@ -223,7 +236,7 @@ def register():
     wm.emonitor_RenderingFrame = BoolProperty(name="Rendering Frame", default=False, options={'HIDDEN', 'SKIP_SAVE'})
     wm.emonitor_RenderingJob = BoolProperty(name="Rendering Job", default=False, options={'HIDDEN', 'SKIP_SAVE'})
     wm.emonitor_JobUUID = StringProperty(name="Job UUID", default="", options={'HIDDEN', 'SKIP_SAVE'})
-    wm.emonitor_enabled = BoolProperty(name="Enable eMonitor", default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    wm.emonitor_enabled = BoolProperty(name="Enable eMonitor", default=False, options={'HIDDEN', 'SKIP_SAVE'})
 
     bpy.app.handlers.render_init.append(render_init)
     bpy.app.handlers.render_pre.append(render_pre)

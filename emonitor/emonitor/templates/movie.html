@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="initial-scale = 0.5; user-scalable = no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>eMonitor</title>
+
+<script type="text/javascript" src="/static/sequencer.canvas2.js"></script>
+<script src="/static/jquery-1.11.2.min.js"></script>
+<script type="text/javascript">
+	//Sequencer.init({from:1, to: 250, folder:"/static/Twister", baseName:"Twister_", ext:"png", direction:"-x"})
+</script>
+
+</head>
+<body></body>
+<script>
+function loadSequence() {
+    var page = window.location.pathname;
+    uuid=page.substring(7);
+
+    $.ajax({
+        type: "GET",
+    url: "/api/job/"+uuid,
+    dataType: "json"
+    })
+    .done(function( msg ) {
+        folder = "/api/job/thumbnail/"+uuid;
+        Sequencer.init({
+            from: parseInt(msg['frame_start']),
+            to: parseInt(msg['frame_current']),
+            folder: folder,
+            baseName: "",
+            ext:"",
+            direction:"-x"});
+    });
+}
+
+$(function(){
+    loadSequence();
+});
+</script>
+</html>
