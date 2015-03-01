@@ -61,6 +61,8 @@ class eMonitorOpen (bpy.types.Operator):
         twitter="https://twitter.com/intent/tweet"
         diaspora="https://diaspora.com.ar/bookmarklet"
         eurl = "http://monitor.eibriel.com"
+        if 'edev' in context.scene:
+            eurl = "http://localhost:5000"
         title = "eMonitor"
         if self.share == 'TWITTER':
             url="{0}?original_referer={1}/{2}&url={1}/{2}&text={3}".format(
@@ -99,9 +101,47 @@ class eMonitorUpdate (bpy.types.Operator):
                 do = False
         return do
 
-    def get_data(self):
-        # scene = context.scene
-        return
+    def get_data(self, context):
+        scene = context.scene
+        cycles = scene.cycles
+        data = {}
+        if scene.render.engine == 'CYCLES':
+            data['use_square_samples'] = cycles.use_square_samples
+            data['feature_set'] = cycles.feature_set
+            data['shading_system'] = cycles.shading_system
+            data['progressive'] = cycles.progressive
+            if cycles.progressive == 'PATH':
+                data['samples'] = cycles.samples
+            else:
+                data['aa_samples'] = cycles.aa_samples
+                data['diffuse_samples'] = cycles.diffuse_samples
+                data['glossy_samples'] = cycles.glossy_samples
+                data['transmission_samples'] = cycles.transmission_samples
+                data['ao_samples'] = cycles.ao_samples
+                data['mesh_light_samples'] = cycles.mesh_light_samples
+                data['subsurface_samples'] = cycles.subsurface_samples
+                data['volume_samples'] = cycles.volume_samples
+                data['sample_all_lights_direct'] = cycles.sample_all_lights_direct
+                data['sample_all_lights_indirect'] = cycles.sample_all_lights_indirect
+            data['volume_step_size'] = cycles.volume_step_size
+            data['volume_max_steps'] = cycles.volume_max_steps
+            data['transparent_max_bounces'] = cycles.transparent_max_bounces
+            data['transparent_min_bounces'] = cycles.transparent_min_bounces
+            data['max_bounces'] = cycles.max_bounces
+            data['min_bounces'] = cycles.min_bounces
+            data['diffuse_bounces'] = cycles.diffuse_bounces
+            data['glossy_bounces'] = cycles.glossy_bounces
+            data['transmission_bounces'] = cycles.transmission_bounces
+            data['volume_bounces'] = cycles.volume_bounces
+            data['use_transparent_shadows'] = cycles.use_transparent_shadows
+            data['caustics_reflective'] = cycles.caustics_reflective
+            data['caustics_refractive'] = cycles.caustics_refractive
+            data['blur_glossy'] = cycles.blur_glossy
+        elif scene.render.engine == 'BLENDER_RENDER':
+            data['use_ambient_occlusion'] = scene.world.light_settings.use_ambient_occlusion
+
+
+        return json.dumps(data)
 
     def execute(self, context):
         scene = context.scene
@@ -129,14 +169,15 @@ class eMonitorUpdate (bpy.types.Operator):
         if self.render_status not in ["RENDER_COMPLETE", "JOB_CANCELLED"]:
             emon_data['frame_current'] = scene.frame_current
         emon_data['status'] = self.render_status
-        emon_data['data'] = self.get_data()
+        emon_data['engine_data'] = self.get_data(context)
 
         #print (emon_data)
         if self.render_status == "RENDER_START":
             wm.emonitor_RenderingFrame = True
 
         self.api_url = "http://monitor.eibriel.com"
-        #self.api_url = "http://localhost:5000"
+        if 'edev' in context.scene:
+            self.api_url = "http://localhost:5000"
 
         if self.render_status == "JOB_START":
             apiurl = "{0}/api/job".format(self.api_url)
