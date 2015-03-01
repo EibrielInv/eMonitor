@@ -72,12 +72,16 @@
 
       <div id="main" class="main efade ehidden">
         <div id="welcome-text">
-            <h1>Monitor your render</h1>
-            <p class="lead"><a href="/static/eibriel_monitor.zip" target="_blank">Download</a> the addon and see your render right here.<br> Nothing to worry about when you left your render alone.</p>
+            <div class="page-header"><h1>Monitor your render</h1></div>
+        <p class="lead"><a href="/static/eibriel_monitor.zip" target="_blank">Download</a> the addon and follow the<br />render progress of your work anywhere.</p>
+            <!--<p class="lead"><a href="/static/eibriel_monitor.zip"
+                target="_blank">Download</a> the addon and see your render right here.<br> Nothing to worry about when you left your render alone.</p>-->
         </div>
 
         <div id="job-text">
-            <h1 id="job_name"></h1>
+            <div class="page-header">
+                <h1 id="job_name"></h1>
+            </div>
             <p id="job_info"></p>
             <div class="progress">
               <div class="progress-bar" id="main-progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
@@ -102,10 +106,10 @@
                         Share <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="#">Twitter</a></li>
-                        <li><a href="#">Diaspora*</a></li>
+                        <li><a id="twitterlink" href="" target="_blank">Twitter</a></li>
+                        <!--<li><a href="#">Diaspora*</a></li>
                         <li class="divider"></li>
-                        <li><a href="#">EMail</a></li>
+                        <li><a href="#">EMail</a></li>-->
                     </ul>
                     </div>
                 </p>
@@ -153,7 +157,9 @@ function getInfo(){
 
     var uuid=''
     if (page=='/') {
-        uuid='54e00a9a16a24e3e56886d67'
+        // TODO load dynamically this value
+        demos = ['54f324ff7ff6a915d864496b', '54f317ef7ff6a915d864496a']
+        uuid = demos[Math.floor(Math.random() * demos.length)];
     } else {
         uuid=page.substring (1);
         $('#welcome-text').hide();

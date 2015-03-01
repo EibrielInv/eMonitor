@@ -34,6 +34,7 @@ function loadSequence() {
         Sequencer.init({
             from: parseInt(msg['frame_start']),
             to: parseInt(msg['frame_current']),
+            scaleMode: "contain",
             folder: folder,
             baseName: "",
             ext:"",
