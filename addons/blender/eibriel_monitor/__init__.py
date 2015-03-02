@@ -247,6 +247,7 @@ def render_cancel(scene):
     if bpy.ops.emonitor.update.poll():
         bpy.ops.emonitor.update(render_status = "JOB_CANCELLED")
         wm.emonitor_TokenSimple = -1
+        wm.emonitor_enabled = False
 
 @persistent
 def render_complete(scene):
@@ -257,6 +258,7 @@ def render_complete(scene):
     if bpy.ops.emonitor.update.poll():
         bpy.ops.emonitor.update(render_status = "RENDER_COMPLETE")
         wm.emonitor_TokenSimple = -1
+        wm.emonitor_enabled = False
 
 @persistent
 def render_write(scene):

@@ -48,6 +48,8 @@ class JobListApi(Resource):
 
 class JobApi(Resource):
     def get(self, job_id=None):
+        if not ObjectId.is_valid(job_id):
+            return '', 404
         renderJobs = MongoConnection.connect()
         data_client=renderJobs.find_one({'_id':ObjectId(job_id)})
 
@@ -112,7 +114,8 @@ class JobApi(Resource):
             filename.rsplit('.', 1)[1] in ['png']
 
     def patch(self, job_id=None):
-        # from werkzeug import secure_filename
+        if not ObjectId.is_valid(job_id):
+            return '', 404
 
         renderJobs = MongoConnection.connect()
         emon_data = jobModel()
@@ -188,6 +191,8 @@ class JobThumbnailApi(Resource):
     def get(self, job_id, frame):
         """Given a job_id returns the output file
         """
+        if not ObjectId.is_valid(job_id):
+            return '', 404
         renderJobs = MongoConnection.connect()
         emon_data = jobModel()
         emon_data['last_access'] = datetime.now()
