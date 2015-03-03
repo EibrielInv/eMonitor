@@ -43,7 +43,7 @@ def index(job_id=None):
 def movie(job_id=None):
     data_job = getJobData(job_id)
     if not data_job:
-        job_id = ''
+        job_id = '54f563487ff6a931e54d7f12'
     return render_template('movie.html', job_id=job_id)
 
 
