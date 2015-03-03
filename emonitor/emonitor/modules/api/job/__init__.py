@@ -269,7 +269,7 @@ class BitcoinApi(Resource):
             'transaction_id':str(bid),
         }
 
-        return faker, 200
+        #return faker, 200
 
         apiurl =  "https://blockchain.info/es/api/receive"
         # bitcoin:1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY?label=Amorzorzores&amount=0.00001
