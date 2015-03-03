@@ -385,8 +385,9 @@ function bitcoinCheck() {
         dataType: "json"
     })
     .done(function( msg ) {
-        if (msg['status']>0) {
-            $("#bitcoin-address").html("Completed!");
+        if (msg["status"]>0) {
+            btc = parseInt(msg["value"]) / 100000000;
+            $("#bitcoin-address").html(btc+" BTC received");
             donateProgress(100);
             clearInterval(bcheckInterval);
             $("#cancel-donation").html("Close");
