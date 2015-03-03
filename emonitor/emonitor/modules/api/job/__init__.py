@@ -256,9 +256,9 @@ class BitcoinApi(Resource):
         try:
             r = requests.get(apiurl, params=params)
         except ConnectionError:
-            return 'BlockChain Connection Error', 500
+            return 'BlockChain Connection Error: {0}'.format(r.url), 500
         except Timeout:
-            return 'BlockChain Timeout', 500
+            return 'BlockChain Timeout: {0}'.format(r.url), 500
 
         print (r.text)
         return '', 200
