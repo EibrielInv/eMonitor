@@ -9,6 +9,9 @@ from flask import send_from_directory
 from flask.ext.restful import Resource
 from flask.ext.restful import reqparse
 
+from requests.exceptions import ConnectionError
+from requests.exceptions import Timeout
+
 import time
 from datetime import datetime
 from datetime import timedelta
@@ -250,7 +253,12 @@ class BitcoinApi(Resource):
             "address": address,
             "callback": callback,
         }
-        r = requests.get(apiurl, params=params)
+        try:
+            r = requests.get(apiurl, params=params)
+        except ConnectionError:
+            return 'BlockChain Connection Error', 500
+        except Timeout:
+            return 'BlockChain Timeout', 500
 
         print (r.text)
         return '', 200
