@@ -286,11 +286,8 @@ class BitcoinApi(Resource):
         except Timeout:
             return 'BlockChain Timeout', 500
 
-        bc = request.get_json(force=False, silent=False)
-        if not bc:
-            return "No Json", 500
         try:
-            rjson = bc.json()
+            rjson = r.json()
         except:
             return "Error on Json", 500
         if not 'input_address' in rjson:
@@ -299,7 +296,7 @@ class BitcoinApi(Resource):
 
         r = {
             'input_address':input_address,
-            'transaction_id':str(did),
+            'transaction_id':str(bid),
         }
 
         return r, 200

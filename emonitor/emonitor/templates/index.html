@@ -352,7 +352,7 @@ function donateWith(mode) {
     if (mode=='paypal') {
         $("#donate-paypal").show();
     } else if (mode=='bitcoin') {
-        $("#bitcoin-address").html("Completed!");
+        $("#bitcoin-address").html("..generating..");
         $("#donate-bitcoin").show();
         $.ajax({
             type: "GET",
