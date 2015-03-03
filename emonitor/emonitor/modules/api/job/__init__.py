@@ -245,7 +245,7 @@ class BitcoinApi(Resource):
         data['status'] = 0
         bid=bitcoinDonations.insert(data.safe())
 
-        apiurl =  "https://blockchain.ifo/es/api/receive"
+        apiurl =  "https://blockchain.info/es/api/receive"
         # bitcoin:1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY?label=Amorzorzores&amount=0.00001
         address = "1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY"
         callback = "http://monitor.eibriel.com/api/bitcoin/callback/{0}/{1}".format(bid, secret)
