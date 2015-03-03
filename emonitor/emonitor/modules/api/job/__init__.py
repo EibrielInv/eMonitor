@@ -247,12 +247,15 @@ class BitcoinApi(Resource):
         bitcoinDonations = db.bitcoinDonations
         data = bitcoinDonationModel()
         secret= random.randint(0, 999999)
+        address = "1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY"
         data['name'] = "Test"
         data['email'] = "test@test.com"
         data['timestamp'] = datetime.now()
         data['secret'] = secret
         data['status'] = 0
+        data['confirmations'] = 0
         data['input_address'] = ""
+        data['destination_address'] = address
         data['transaction_hash'] = ""
         data['input_transaction_hash'] = ""
         data['value'] = 0
@@ -266,11 +269,10 @@ class BitcoinApi(Resource):
             'transaction_id':str(bid),
         }
 
-        return faker, 200
+        #return faker, 200
 
         apiurl =  "https://blockchain.info/es/api/receive"
         # bitcoin:1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY?label=Amorzorzores&amount=0.00001
-        address = "1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY"
         callback = "http://monitor.eibriel.com/api/bitcoin/callback/{0}/{1}".format(bid, secret)
         params = {
             "method": "create",
@@ -330,14 +332,15 @@ class BitcoinCallbackApi(Resource):
         db = client.emonitor
         bitcoinDonations = db.bitcoinDonations
         data = bitcoinDonationModel()
-        if args['confirmations']>0:
+        if int(args['confirmations'])>0:
             data['status'] = 1
-        if args['confirmations']>6:
+        if int(args['confirmations'])>5:
             data['status'] = 2
             r = "*ok*"
         data['input_address'] = args['input_address']
         data['transaction_hash'] = args['transaction_hash']
         data['input_transaction_hash'] = args['input_transaction_hash']
+        data['confirmations'] = args['confirmations']
         data['value'] = args['value']
         key = {'_id': ObjectId(bid),
                'secret': secret,
@@ -357,6 +360,7 @@ class bitcoinDonationModel(Document):
         'timestamp': datetime,
         'secret': int,
         'status': int,
+        'confirmations': int,
         'input_address': str,
         'destination_address': str,
         'transaction_hash': str,
@@ -370,6 +374,7 @@ class bitcoinDonationModel(Document):
         'timestamp': Document.any_val(),
         'secret': Document.any_val(),
         'status': Document.min_max_val(0,2),
+        'confirmations': Document.any_val(),
         'input_address': Document.any_val(),
         'destination_address': Document.any_val(),
         'transaction_hash': Document.any_val(),
