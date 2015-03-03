@@ -21,8 +21,8 @@ from emonitor.modules.api.job import BitcoinApi
 from emonitor.modules.api.job import BitcoinCallbackApi
 from emonitor.modules.api.job import BitcoinCheckApi
 api.add_resource(BitcoinApi, '/api/bitcoin')
-api.add_resource(BitcoinCallbackApi, '/api/bitcoin/callback/<bid>/<secret>')
-api.add_resource(BitcoinCheckApi, '/api/bitcoin/<bid>')
+api.add_resource(BitcoinCallbackApi, '/api/bitcoin/callback/<str:bid>/<int:secret>')
+api.add_resource(BitcoinCheckApi, '/api/bitcoin/<str:bid>')
 
 from emonitor.modules.main import main
 app.register_blueprint(main)

@@ -32,7 +32,7 @@ bit_parser = reqparse.RequestParser()
 bit_parser.add_argument('transaction_hash', type=str, required=True)
 bit_parser.add_argument('input_transaction_hash', type=str, required=True)
 bit_parser.add_argument('input_address', type=str, required=True)
-bit_parser.add_argument('address', type=str, required=True)
+bit_parser.add_argument('destination_address', type=str, required=True)
 bit_parser.add_argument('value', type=int, required=True)
 bit_parser.add_argument('confirmations', type=int, required=True)
 
@@ -341,7 +341,7 @@ class BitcoinCallbackApi(Resource):
         data['value'] = args['value']
         key = {'_id': ObjectId(bid),
                'secret': secret,
-               'destination_address': args['address']}
+               'destination_address': args['destination_address']}
         bitcoinDonations.update(key, {'$set':data.safe()})
         resp = make_response(r, 200)
         resp.mimetype = 'text/plain'
