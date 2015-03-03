@@ -323,7 +323,9 @@ class BitcoinCallbackApi(Resource):
         args = bit_parser.parse_args()
         r = ""
         if not ObjectId.is_valid(bid):
-            return '*ik*', 200
+            resp = make_response('', 200)
+            resp.mimetype = 'text/plain'
+            return resp
         client = MongoClient()
         db = client.emonitor
         bitcoinDonations = db.bitcoinDonations
