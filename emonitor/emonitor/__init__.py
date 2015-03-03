@@ -16,6 +16,12 @@ api.add_resource(JobApi, '/api/job/<job_id>')
 api.add_resource(JobOembedApi, '/api/job/oembed')
 api.add_resource(JobThumbnailApi, '/api/job/thumbnail/<job_id>/<frame>')
 
+
+from emonitor.modules.api.job import BitcoinApi
+from emonitor.modules.api.job import BitcoinCallbackApi
+api.add_resource(BitcoinApi, '/api/bitcoin')
+api.add_resource(BitcoinCallbackApi, '/api/bitcoin/<bid>/<secret>')
+
 from emonitor.modules.main import main
 app.register_blueprint(main)
 

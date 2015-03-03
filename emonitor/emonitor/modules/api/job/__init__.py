@@ -225,7 +225,76 @@ src="http://monitor.eibriel.com/movie/{0}">\
 
         return params
 
+# TODO move bitcoin Code
+class BitcoinApi(Resource):
+    def get(self):
+        """Bitcoin support"""
+        client = MongoClient()
+        db = client.emonitor
+        bitcoinDonations = db.bitcoinDonations
+        data = bitcoinDonationModel()
+        secret= random.randint(0, 999999)
+        data['name'] = "Test"
+        data['email'] = "test@test.com"
+        data['timestamp'] = datetime.now()
+        data['secret'] = secret
+        data['status'] = 'WAITING'
+        bid=renderJobs.insert(data.safe())
+
+        apiurl =  "https://blockchain.info/es/api/receive"
+        # bitcoin:1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY?label=Amorzorzores&amount=0.00001
+        address = "1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY"
+        callback = "http://monitor.eibriel.com/api/bitcoin/callback/{0}/{1}".format(bid, secret)
+        params = {
+            "method": "create",
+            "address": address,
+            "callback": callback,
+        }
+        r = requests.get(apiurl, params=params)
+
+        print (r.text)
+        return '', 200
+
+
+class BitcoinCallbackApi(Resource):
+    def get(self, bid, secret):
+        """Bitcoin Callback"""
+        if not ObjectId.is_valid(did):
+            return '', 200
+        client = MongoClient()
+        db = client.emonitor
+        bitcoinDonations = db.bitcoinDonations
+        data = bitcoinDonationModel()
+        data['status'] = 1
+
+        key = {'_id': ObjectId(bid), 'secret': secret}
+        renderJobs.update(key, {'$set':data.safe()})
+
+        return '', 200
+
+
 # Models
+
+class bitcoinDonationModel(Document):
+    structure = {
+        'name': str,
+        'email': str,
+        'timestamp': datetime,
+        'secret': int,
+        'status': int,
+    }
+
+    validators = {
+        'name': Document.any_val(),
+        'email': Document.any_val(),
+        'timestamp': Document.any_val(),
+        'secret': Document.any_val(),
+        'status': Document.min_max_val(0,2),
+    }
+
+    def __repr__(self):
+        return '<BitDonation {0}>'.format(self.name)
+
 
 class blenderInternalModel(Document):
     structure = {

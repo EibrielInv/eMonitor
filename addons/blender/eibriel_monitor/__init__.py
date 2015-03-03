@@ -36,6 +36,8 @@ import requests
 from bpy.app.handlers import persistent
 from bpy.props import IntProperty, BoolProperty, StringProperty
 
+from requests.exceptions import ConnectionError, Timeout
+
 
 class eMonitorOpen (bpy.types.Operator):
     """Open render on eMonitor """
@@ -58,20 +60,20 @@ class eMonitorOpen (bpy.types.Operator):
     def execute(self, context):
         wm = bpy.context.window_manager
         juuid = wm.emonitor_JobUUID
-        twitter="https://twitter.com/intent/tweet"
-        diaspora="https://diaspora.com.ar/bookmarklet"
+        twitter = "https://twitter.com/intent/tweet"
+        diaspora = "https://diaspora.com.ar/bookmarklet"
         eurl = "http://monitor.eibriel.com"
         if 'edev' in context.scene:
             eurl = "http://localhost:5000"
         title = "eMonitor"
         if self.share == 'TWITTER':
-            url="{0}?original_referer={1}/{2}&url={1}/{2}&text={3}".format(
-                    twitter, eurl, juuid, title)
+            url = "{0}?original_referer={1}/{2}&url={1}/{2}&text={3}".format(
+                twitter, eurl, juuid, title)
         elif self.share == 'DIASPORA':
-            url="{0}?url={1}/{2}&title={3}".format(
+            url = "{0}?url={1}/{2}&title={3}".format(
                 diaspora, eurl, juuid, title)
         else:
-            url="{0}/{1}".format(eurl, juuid)
+            url = "{0}/{1}".format(eurl, juuid)
 
         bpy.ops.wm.url_open(url=url)
         return {'FINISHED'}
@@ -97,7 +99,7 @@ class eMonitorUpdate (bpy.types.Operator):
             do = False
 
         if scn.render.use_sequencer and scn.sequence_editor:
-            if len(scn.sequence_editor.sequences.items())>0:
+            if len(scn.sequence_editor.sequences.items()) > 0:
                 do = False
         return do
 
@@ -140,8 +142,8 @@ class eMonitorUpdate (bpy.types.Operator):
         elif scene.render.engine == 'BLENDER_RENDER':
             data['use_ambient_occlusion'] = scene.world.light_settings.use_ambient_occlusion
 
-
         return json.dumps(data)
+
 
     def execute(self, context):
         scene = context.scene
@@ -155,6 +157,9 @@ class eMonitorUpdate (bpy.types.Operator):
             file = 'untitled'
         else:
             file = os.path.split(D.filepath)[1]
+
+        if self.render_status in ["JOB_START"]:
+            wm.emonitor_frameCount = 0
 
         name = "{0}_{1}".format(file, scene.name)
         emon_data = {}
@@ -171,9 +176,25 @@ class eMonitorUpdate (bpy.types.Operator):
         emon_data['status'] = self.render_status
         emon_data['engine_data'] = self.get_data(context)
 
-        #print (emon_data)
+        if scene.frame_current < scene.frame_start or\
+                scene.frame_current > scene.frame_end:
+            emon_data['frame_start'] = scene.frame_current
+            emon_data['frame_end'] = scene.frame_current
+            emon_data['frame_current'] = scene.frame_current
+
+        # Detects rendering a single frame
+        if self.render_status in ["RENDER_COMPLETE"]:
+            if wm.emonitor_frameCount == 1:
+                emon_data['frame_start'] = wm.emonitor_lastFrame
+                emon_data['frame_end'] = wm.emonitor_lastFrame
+                emon_data['frame_current'] = wm.emonitor_lastFrame
+
+        wm.emonitor_lastFrame = scene.frame_current
+
+        # print (emon_data)
         if self.render_status == "RENDER_START":
             wm.emonitor_RenderingFrame = True
+            wm.emonitor_frameCount += 1
 
         self.api_url = "http://monitor.eibriel.com"
         if 'edev' in context.scene:
@@ -181,9 +202,16 @@ class eMonitorUpdate (bpy.types.Operator):
 
         if self.render_status == "JOB_START":
             apiurl = "{0}/api/job".format(self.api_url)
-            r = requests.post(apiurl, data = emon_data)
+            try:
+                r = requests.post(apiurl, data=emon_data, timeout=20)
+            except ConnectionError:
+                print ("[eMonitor] Connection Error A")
+                return {'FINISHED'}
+            except Timeout:
+                print ("[eMonitor] Timeout Error A")
+                return {'FINISHED'}
             if r.status_code != 200:
-                logging.error("Error")
+                print("[eMonitor] Error ({0}A)".format(r.status_code))
                 return {'FINISHED'}
             rlist = json.loads(r.text)
             jobuuid = rlist['uuid']
@@ -191,78 +219,104 @@ class eMonitorUpdate (bpy.types.Operator):
             wm.emonitor_RenderingJob = True
             wm.emonitor_JobUUID = jobuuid
             wm.emonitor_TokenSimple = token_simple
-        elif self.render_status in ["RENDER_UPDATE", "RENDER_END", "JOB_CANCELLED"]:
+        elif self.render_status in ["RENDER_UPDATE",
+                                    "RENDER_END",
+                                    "JOB_CANCELLED"]:
             juuid = wm.emonitor_JobUUID
             tmpfolder = context.user_preferences.filepaths.temporary_directory
             filepath = os.path.join(
                 tmpfolder, 'thumbnail_{0}.png'.format(juuid))
             bpy.data.images["Render Result"].save_render(filepath)
-            render_file = [('images', ('thumbnail.png', open(filepath, 'rb'), 'image/png'))]
+            render_file = [('images', ('thumbnail.png',
+                                       open(filepath, 'rb'),
+                                       'image/png'))]
             apiurl = "{0}/api/job/{1}".format(self.api_url, juuid)
-            r = requests.patch(apiurl, files = render_file , data = emon_data)
+            try:
+                r = requests.patch(apiurl,
+                                files=render_file,
+                                data=emon_data,
+                                timeout=20)
+            except ConnectionError:
+                print ("[eMonitor] Connection Error C")
+                return {'FINISHED'}
+            except Timeout:
+                print ("[eMonitor] Timeout Error C")
+                return {'FINISHED'}
             if r.status_code != 200:
-                logging.error("Error")
+                print("[eMonitor] Error ({0}B)".format(r.status_code))
                 return {'FINISHED'}
             rlist = json.loads(r.text)
         else:
             juuid = wm.emonitor_JobUUID
             apiurl = "{0}/api/job/{1}".format(self.api_url, juuid)
-            r = requests.patch(apiurl, data = emon_data)
+            try:
+                r = requests.patch(apiurl, data=emon_data, timeout=20)
+            except ConnectionError:
+                print ("[eMonitor] Connection Error C")
+                return {'FINISHED'}
+            except Timeout:
+                print ("[eMonitor] Timeout Error C")
+                return {'FINISHED'}
+
             if r.status_code != 200:
-                logging.error("Error: {0}".format(r.status_code))
+                print("[eMonitor] Error ({0}C)".format(r.status_code))
                 return {'FINISHED'}
             rlist = json.loads(r.text)
 
         return {'FINISHED'}
 
+
 @persistent
 def render_init(scene):
     logging.debug("Start Job")
     if bpy.ops.emonitor.update.poll():
-       bpy.ops.emonitor.update(render_status = "JOB_START")
+       bpy.ops.emonitor.update(render_status="JOB_START")
 
 
 @persistent
 def render_pre(scene):
     logging.debug("Start Render")
     if bpy.ops.emonitor.update.poll():
-        bpy.ops.emonitor.update(render_status = "RENDER_START")
+        bpy.ops.emonitor.update(render_status="RENDER_START")
 
 
 @persistent
 def render_post(scene):
     wm = bpy.context.window_manager
     logging.debug("End Render")
-    wm.emonitor_RenderingFrame=False
+    wm.emonitor_RenderingFrame = False
     if bpy.ops.emonitor.update.poll():
-        bpy.ops.emonitor.update(render_status = "RENDER_END")
+        bpy.ops.emonitor.update(render_status="RENDER_END")
 
 
 @persistent
 def render_cancel(scene):
     wm = bpy.context.window_manager
     logging.debug("Job Cancelled")
-    wm.emonitor_RenderingJob=False
-    wm.emonitor_RenderingFrame=False
+    wm.emonitor_RenderingJob = False
+    wm.emonitor_RenderingFrame = False
     if bpy.ops.emonitor.update.poll():
-        bpy.ops.emonitor.update(render_status = "JOB_CANCELLED")
+        bpy.ops.emonitor.update(render_status="JOB_CANCELLED")
         wm.emonitor_TokenSimple = -1
         wm.emonitor_enabled = False
+
 
 @persistent
 def render_complete(scene):
     wm = bpy.context.window_manager
     logging.debug("Job Completed")
-    wm.emonitor_RenderingJob=False
-    wm.emonitor_RenderingFrame=False
+    wm.emonitor_RenderingJob = False
+    wm.emonitor_RenderingFrame = False
     if bpy.ops.emonitor.update.poll():
-        bpy.ops.emonitor.update(render_status = "RENDER_COMPLETE")
+        bpy.ops.emonitor.update(render_status="RENDER_COMPLETE")
         wm.emonitor_TokenSimple = -1
         wm.emonitor_enabled = False
+
 
 @persistent
 def render_write(scene):
     logging.debug("Image Saved")
+
 
 def buttons_emonitor(self, context):
     wm = bpy.context.window_manager
@@ -280,11 +334,20 @@ def register():
     wm = bpy.types.WindowManager
     bpy.types.INFO_MT_render.append(buttons_emonitor)
     wm.emonitor_StartTime = IntProperty(options={'HIDDEN', 'SKIP_SAVE'})
-    wm.emonitor_RenderingFrame = BoolProperty(name="Rendering Frame", default=False, options={'HIDDEN', 'SKIP_SAVE'})
-    wm.emonitor_RenderingJob = BoolProperty(name="Rendering Job", default=False, options={'HIDDEN', 'SKIP_SAVE'})
-    wm.emonitor_JobUUID = StringProperty(name="Job UUID", default="", options={'HIDDEN', 'SKIP_SAVE'})
-    wm.emonitor_TokenSimple = IntProperty(default=-1, options={'HIDDEN', 'SKIP_SAVE'})
-    wm.emonitor_enabled = BoolProperty(name="Enable eMonitor", default=False, options={'HIDDEN', 'SKIP_SAVE'})
+    wm.emonitor_RenderingFrame = BoolProperty(
+        name="Rendering Frame", default=False, options={'HIDDEN', 'SKIP_SAVE'})
+    wm.emonitor_RenderingJob = BoolProperty(
+        name="Rendering Job", default=False, options={'HIDDEN', 'SKIP_SAVE'})
+    wm.emonitor_JobUUID = StringProperty(
+        name="Job UUID", default="", options={'HIDDEN', 'SKIP_SAVE'})
+    wm.emonitor_TokenSimple = IntProperty(
+        default=-1, options={'HIDDEN', 'SKIP_SAVE'})
+    wm.emonitor_enabled = BoolProperty(
+        name="Enable eMonitor", default=False, options={'HIDDEN', 'SKIP_SAVE'})
+    wm.emonitor_lastFrame = IntProperty(
+        default=-9999, options={'HIDDEN', 'SKIP_SAVE'})
+    wm.emonitor_frameCount = IntProperty(
+        default=0, options={'HIDDEN', 'SKIP_SAVE'})
 
     bpy.app.handlers.render_init.append(render_init)
     bpy.app.handlers.render_pre.append(render_pre)

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Monitor your render">
     <meta name="author" content="Eibriel">
-    <link rel="icon" href="/static/favicon.ico">
+    <link rel="icon" href="/static/pic/eibriel.ico">
 
     <title>eMonitor</title>
 
@@ -71,11 +71,38 @@
     <div class="container">
 
       <div id="main" class="main efade ehidden">
+
+        <div id="donation-text" class="panel panel-default" style="margin-top:20px;">
+            <div class="panel-heading"><h3 class="panel-title">Thanks!</h3></div>
+            <div class="panel-body">
+                <div>
+                    <p>Donate with <a href="" class="btn btn-primary btn-xs">Bitcoin</a> or <a href="" class="btn btn-primary btn-xs">PayPal</a></p>
+                    <p>eMonitor is a bit slow now, you can help me to make it faster!<br />-Eibriel-</p>
+                </div>
+
+                <div>
+                    <p>PayPal don't work where I live, I sugest you to make a donation to <a href="http://www.blender.org/foundation/development-fund/" target="_blank" class="btn btn-warning btn-xs">Blender</a>.</p>
+                    <p>Or maybe you feel curious about <a href="https://www.coinbase.com/home" target="_blank" class="btn btn-primary btn-xs">Bitcoin</a>?
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <p><a href="" class="btn btn-default btn-xs">Maybe later</a></p>
+                </div>
+            </div>
+        </div>
+
         <div id="welcome-text">
             <div class="page-header"><h1>Monitor your render</h1></div>
         <p class="lead"><a href="/static/eibriel_monitor.zip" target="_blank">Download</a> the addon and follow the<br />render progress of your work anywhere.</p>
             <!--<p class="lead"><a href="/static/eibriel_monitor.zip"
                 target="_blank">Download</a> the addon and see your render right here.<br> Nothing to worry about when you left your render alone.</p>-->
+            <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe class="embed-responsive-item" src="//www.youtube-nocookie.com/embed/PZvMjhND1vA?rel=0&amp;controls=0&amp;showinfo=0" allowfullscreen></iframe>
+                </div>
+            </div>
+            </div>
         </div>
 
         <div id="job-text">
@@ -94,8 +121,12 @@
                     <p></p>
                 </div>
             </div>-->
-            <div class="embed-responsive embed-responsive-16by9">
-                <iframe id="main-pic" class="embed-responsive-item" src="/movie/"></iframe>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="embed-responsive embed-responsive-16by9">
+                        <iframe id="main-pic" class="embed-responsive-item" src="/movie/"></iframe>
+                    </div>
+                </div>
             </div>
             <div>
                 <p>
@@ -160,6 +191,7 @@ function getInfo(){
         // TODO load dynamically this value
         demos = ['54f324ff7ff6a915d864496b', '54f317ef7ff6a915d864496a']
         uuid = demos[Math.floor(Math.random() * demos.length)];
+        $("#job-text").hide();
     } else {
         uuid=page.substring (1);
         $('#welcome-text').hide();
@@ -174,7 +206,7 @@ function getInfo(){
     twitter = twitter+'original_referer='+siteurl+twitteruuid+'&url='+siteurl+twitteruuid+'&text='+title;
     $("#twitterlink").attr("href", twitter);
 
-    if (rstatus == 'RENDER_COMPLETE' || rstatus == 'JOB_CANCELLED') {
+    if (rstatus == 'RENDER_COMPLETE' || rstatus == 'JOB_CANCELLED' || page=='/') {
         return;
     }
 

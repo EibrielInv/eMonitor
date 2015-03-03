@@ -145,7 +145,7 @@ var Sequencer = (function(){
 	    	progress.style.zIndex = 1000;
 	    	progress.update = function(num){
 	    		var t = Math.floor((config.to - config.from + 1) / config.step);
-				progress.innerHTML = (num + 1) + "/" + t;
+				progress.innerHTML = (num) + "/" + t;
 	    	}
 			document.body.appendChild(progress);
 		} else if (mode == "bar") {
@@ -207,6 +207,8 @@ var Sequencer = (function(){
 	function configureBody(){
 		canvas = document.createElement('canvas');
 		canvas.style.position = "fixed";
+        canvas.width = 1;
+        canvas.height = 1;
 		context = canvas.getContext('2d');
 		document.body.appendChild(canvas);
 				
@@ -232,7 +234,7 @@ var Sequencer = (function(){
             //fnum = pad(num, 4);
 			img.src = config.folder + "/" + config.baseName + num + "" + config.ext;
 			img.onload = function(){
-				if (imgList.length == 0){
+				if (canvas.width == 1){
 					canvas.width = this.width;
 					canvas.height = this.height;
 					onWindowResize();
