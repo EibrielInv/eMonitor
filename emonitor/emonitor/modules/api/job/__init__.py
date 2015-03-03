@@ -1,6 +1,7 @@
 import os
 import json
 import random
+import requests
 
 from pymongo import MongoClient
 from bson import ObjectId
@@ -241,10 +242,10 @@ class BitcoinApi(Resource):
         data['email'] = "test@test.com"
         data['timestamp'] = datetime.now()
         data['secret'] = secret
-        data['status'] = 'WAITING'
+        data['status'] = 0
         bid=bitcoinDonations.insert(data.safe())
 
-        apiurl =  "https://blockchain.info/es/api/receive"
+        apiurl =  "https://blockchain.ifo/es/api/receive"
         # bitcoin:1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY?label=Amorzorzores&amount=0.00001
         address = "1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY"
         callback = "http://monitor.eibriel.com/api/bitcoin/callback/{0}/{1}".format(bid, secret)
@@ -256,9 +257,9 @@ class BitcoinApi(Resource):
         try:
             r = requests.get(apiurl, params=params)
         except ConnectionError:
-            return 'BlockChain Connection Error: {0}'.format(r.url), 500
+            return 'BlockChain Connection Error', 500
         except Timeout:
-            return 'BlockChain Timeout: {0}'.format(r.url), 500
+            return 'BlockChain Timeout', 500
 
         print (r.text)
         return '', 200
