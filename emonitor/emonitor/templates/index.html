@@ -86,10 +86,10 @@
                 </div>
 
                 <div id="donate-bitcoin">
-                    <p>Please use the following address:</p>
+                    <p>Send to the following address:</p>
                     <p style="font-size:1.5em;"><span id="bitcoin-address" class="label label-warning">..generating..</span></p>
                     <p>Minimum transaction size is 0.0005 BTC</p>
-                    <p><span id="bitcoin-status" class="label label-info">Waiting confirmation</span></p>
+                    <p><span id="bitcoin-status" class="label label-info"></span></p>
                 </div>
 
                 <div id="donate-bitcoin2">
@@ -332,7 +332,7 @@ $(function() {
     $("#donate-bitcoin").hide();
     $("#donate-bitcoin2").hide();
     ;$("#sticker-thanks").hide();
-    $("#bitcoin-status").html("Waiting confirmation")
+    $("#bitcoin-status").html("You will see your Bitcoins here in a minute...")
     donateProgress(0);
 
     getInfo();
