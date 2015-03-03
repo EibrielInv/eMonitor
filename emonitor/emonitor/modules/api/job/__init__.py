@@ -27,6 +27,13 @@ oem_parser.add_argument('maxwidth', type=int, default=300)
 oem_parser.add_argument('maxheight', type=int, default=200)
 oem_parser.add_argument('format', type=str)
 
+bit_parser = reqparse.RequestParser()
+bit_parser.add_argument('transaction_hash', type=str, required=True)
+bit_parser.add_argument('input_transaction_hash', type=str, required=True)
+bit_parser.add_argument('input_address', type=str, required=True)
+bit_parser.add_argument('value', type=int, required=True)
+bit_parser.add_argument('confirmations', type=int, required=True)
+
 
 class MongoConnection():
     def connect():
@@ -243,7 +250,21 @@ class BitcoinApi(Resource):
         data['timestamp'] = datetime.now()
         data['secret'] = secret
         data['status'] = 0
+        data['input_address'] = ""
+        data['transaction_hash'] = ""
+        data['input_transaction_hash'] = ""
+        data['value'] = 0
         bid=bitcoinDonations.insert(data.safe())
+
+        faker = {
+            #"callback_url":"http://monitor.eibriel.com/api/bitcoin/callback/54f515737ff6a90c47bdf5b4/796068",
+            "input_address":"19Ft211qH3R5PywgoEPqJmTWCyTBYUiufu",
+            #"destination":"1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY",
+            #"fee_percent":0
+            'transaction_id':str(bid),
+        }
+
+        return faker, 200
 
         apiurl =  "https://blockchain.info/es/api/receive"
         # bitcoin:1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY?label=Amorzorzores&amount=0.00001
@@ -261,22 +282,59 @@ class BitcoinApi(Resource):
         except Timeout:
             return 'BlockChain Timeout', 500
 
-        print (r.text)
-        return '', 200
+        bc = request.get_json(force=False, silent=False)
+        if not bc:
+            return "No Json", 500
+        try:
+            rjson = bc.json()
+        except:
+            return "Error on Json", 500
+        if not 'input_address' in rjson:
+            return "No input_address", 500
+        input_address = rjson['input_address']
+
+        r = {
+            'input_address':input_address,
+            'transaction_id':str(did),
+        }
+
+        return r, 200
+
+
+class BitcoinCheckApi(Resource):
+    def get(self, bid):
+        """Check for confirmation"""
+        if not ObjectId.is_valid(bid):
+            return '', 200
+        client = MongoClient()
+        db = client.emonitor
+        bitcoinDonations = db.bitcoinDonations
+        key = {'_id': ObjectId(bid)}
+        data = bitcoinDonations.find_one(key)
+
+        return {'status':data['status']}, 200
 
 
 class BitcoinCallbackApi(Resource):
     def get(self, bid, secret):
         """Bitcoin Callback"""
-        if not ObjectId.is_valid(did):
+        args = bit_parser.parse_args()
+        if not ObjectId.is_valid(bid):
             return '', 200
         client = MongoClient()
         db = client.emonitor
         bitcoinDonations = db.bitcoinDonations
         data = bitcoinDonationModel()
-        data['status'] = 1
+        if args['confirmations']>0:
+            data['status'] = 1
+        data['input_address'] = args['input_address']
+        data['transaction_hash'] = args['transaction_hash']
+        data['input_transaction_hash'] = args['input_transaction_hash']
+        data['value'] = args['value']
 
-        key = {'_id': ObjectId(bid), 'secret': secret}
+        key = {'_id': ObjectId(bid),
+               'secret': secret,
+               'destination_address': args['destination_address']}
         bitcoinDonations.update(key, {'$set':data.safe()})
 
         return '', 200
@@ -291,6 +349,11 @@ class bitcoinDonationModel(Document):
         'timestamp': datetime,
         'secret': int,
         'status': int,
+        'input_address': str,
+        'destination_address': str,
+        'transaction_hash': str,
+        'input_transaction_hash': str,
+        'value': int,
     }
 
     validators = {
@@ -299,6 +362,11 @@ class bitcoinDonationModel(Document):
         'timestamp': Document.any_val(),
         'secret': Document.any_val(),
         'status': Document.min_max_val(0,2),
+        'input_address': Document.any_val(),
+        'destination_address': Document.any_val(),
+        'transaction_hash': Document.any_val(),
+        'input_transaction_hash': Document.any_val(),
+        'value': Document.any_val(),
     }
 
     def __repr__(self):
