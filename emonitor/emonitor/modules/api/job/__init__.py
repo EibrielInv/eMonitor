@@ -7,6 +7,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 from flask import request
 from flask import send_from_directory
+from flask import make_response
 from flask.ext.restful import Resource
 from flask.ext.restful import reqparse
 
@@ -31,6 +32,7 @@ bit_parser = reqparse.RequestParser()
 bit_parser.add_argument('transaction_hash', type=str, required=True)
 bit_parser.add_argument('input_transaction_hash', type=str, required=True)
 bit_parser.add_argument('input_address', type=str, required=True)
+bit_parser.add_argument('address', type=str, required=True)
 bit_parser.add_argument('value', type=int, required=True)
 bit_parser.add_argument('confirmations', type=int, required=True)
 
@@ -319,25 +321,29 @@ class BitcoinCallbackApi(Resource):
     def get(self, bid, secret):
         """Bitcoin Callback"""
         args = bit_parser.parse_args()
+        r = ""
         if not ObjectId.is_valid(bid):
-            return '', 200
+            return '*ik*', 200
         client = MongoClient()
         db = client.emonitor
         bitcoinDonations = db.bitcoinDonations
         data = bitcoinDonationModel()
         if args['confirmations']>0:
             data['status'] = 1
+        if args['confirmations']>6:
+            data['status'] = 2
+            r = "*ok*"
         data['input_address'] = args['input_address']
         data['transaction_hash'] = args['transaction_hash']
         data['input_transaction_hash'] = args['input_transaction_hash']
         data['value'] = args['value']
-
         key = {'_id': ObjectId(bid),
                'secret': secret,
-               'destination_address': args['destination_address']}
+               'destination_address': args['address']}
         bitcoinDonations.update(key, {'$set':data.safe()})
-
-        return '', 200
+        resp = make_response(r, 200)
+        resp.mimetype = 'text/plain'
+        return resp
 
 
 # Models
