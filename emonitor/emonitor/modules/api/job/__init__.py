@@ -334,8 +334,7 @@ class BitcoinCallbackApi(Resource):
         db = client.emonitor
         bitcoinDonations = db.bitcoinDonations
         data = bitcoinDonationModel()
-        if int(args['confirmations'])>0:
-            data['status'] = 1
+        data['status'] = 1
         if int(args['confirmations'])>5:
             data['status'] = 2
             r = "*ok*"
