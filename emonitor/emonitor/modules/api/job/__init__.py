@@ -242,7 +242,7 @@ class BitcoinApi(Resource):
         data['timestamp'] = datetime.now()
         data['secret'] = secret
         data['status'] = 'WAITING'
-        bid=renderJobs.insert(data.safe())
+        bid=bitcoinDonations.insert(data.safe())
 
         apiurl =  "https://blockchain.info/es/api/receive"
         # bitcoin:1MD8wCtnx5zqGvkY1VYPNqckAyTWDhXKzY?label=Amorzorzores&amount=0.00001
@@ -276,7 +276,7 @@ class BitcoinCallbackApi(Resource):
         data['status'] = 1
 
         key = {'_id': ObjectId(bid), 'secret': secret}
-        renderJobs.update(key, {'$set':data.safe()})
+        bitcoinDonations.update(key, {'$set':data.safe()})
 
         return '', 200
 
