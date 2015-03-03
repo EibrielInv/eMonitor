@@ -241,7 +241,7 @@ function getInfo(){
 
     $.ajax({
         type: "GET",
-        url: "api/job/"+uuid,
+        url: "/api/job/"+uuid,
         dataType: "json"
     })
     .done(function( msg ) {
