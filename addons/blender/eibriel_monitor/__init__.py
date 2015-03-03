@@ -321,12 +321,12 @@ def render_write(scene):
 def buttons_emonitor(self, context):
     wm = bpy.context.window_manager
     self.layout.separator()
-    prop = self.layout.operator("emonitor.open", "Monitor")
+    prop = self.layout.operator("emonitor.open", "Open eMonitor")
     prop.share = 'NONE'
-    prop = self.layout.operator("emonitor.open", "Tweet")
-    prop.share = 'TWITTER'
-    prop = self.layout.operator("emonitor.open", "Diaspora")
-    prop.share = 'DIASPORA'
+    #prop = self.layout.operator("emonitor.open", "Tweet")
+    #prop.share = 'TWITTER'
+    #prop = self.layout.operator("emonitor.open", "Diaspora")
+    #prop.share = 'DIASPORA'
     self.layout.prop(wm, 'emonitor_enabled')
 
 
