@@ -28,6 +28,17 @@ def getJobData(job_id):
         return False
     return data_job
 
+def getStats():
+    renderJobs = MongoConnection.connect()
+    stats={}
+    stats['total'] = renderJobs.count()
+    stats['complete'] = renderJobs.find(
+        {'status':{'$in':['RENDER_COMPLETE','JOB_CANCELLED']}}).count()
+    stats['rendering'] = renderJobs.find(
+        {'status':{'$in':['JOB_START', 'RENDER_START', 'RENDER_END']}}).count()
+
+    return stats
+
 
 @main.route('/')
 @main.route('/<job_id>')
@@ -35,7 +46,8 @@ def index(job_id=None):
     data_job = getJobData(job_id)
     if not data_job:
         job_id = ''
-    return render_template('index.html', job_id=job_id)
+    stats = getStats()
+    return render_template('index.html', job_id=job_id, stats=stats)
 
 
 @main.route('/movie/')
