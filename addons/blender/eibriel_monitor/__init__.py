@@ -19,7 +19,7 @@
 bl_info = {
     "name": "eMonitor",
     "author": "Eibriel",
-    "version": (0, 2),
+    "version": (0, 2, 1),
     "blender": (2, 73, 0),
     "location": "Image > Send to eMonitor",
     "description": "Monitor your render on the Web",
@@ -176,13 +176,14 @@ class eMonitorUpdate (bpy.types.Operator):
         emon_data['status'] = self.render_status
         emon_data['engine_data'] = self.get_data(context)
 
-        if scene.frame_current < scene.frame_start or\
-                scene.frame_current > scene.frame_end:
-            emon_data['frame_start'] = scene.frame_current
-            emon_data['frame_end'] = scene.frame_current
-            emon_data['frame_current'] = scene.frame_current
-
         # Detects rendering a single frame
+        if self.render_status not in ["RENDER_COMPLETE"]:
+            if scene.frame_current < scene.frame_start or\
+                    scene.frame_current > scene.frame_end:
+                emon_data['frame_start'] = scene.frame_current
+                emon_data['frame_end'] = scene.frame_current
+                emon_data['frame_current'] = scene.frame_current
+
         if self.render_status in ["RENDER_COMPLETE"]:
             if wm.emonitor_frameCount == 1:
                 emon_data['frame_start'] = wm.emonitor_lastFrame
