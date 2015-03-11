@@ -134,7 +134,7 @@ class JobApi(Resource):
         emon_data = jobModel()
         emon_data['status'] = str(request.form['status'])
         if 'time_cost' in request.form:
-            emon_data['time_cost'] = int(request.form['time_cost']
+            emon_data['time_cost'] = int(request.form['time_cost'])
         emon_data['engine'] = str(request.form['engine'])
         emon_data['freestyle'] = request.form['freestyle']=="True"
         emon_data['compositor'] = request.form['compositor']=="True"
