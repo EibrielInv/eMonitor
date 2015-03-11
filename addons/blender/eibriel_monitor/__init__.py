@@ -19,7 +19,7 @@
 bl_info = {
     "name": "eMonitor",
     "author": "Eibriel",
-    "version": (0, 2, 1),
+    "version": (0, 2, 2),
     "blender": (2, 73, 0),
     "location": "Image > Send to eMonitor",
     "description": "Monitor your render on the Web",
