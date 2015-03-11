@@ -31,6 +31,7 @@ bl_info = {
 import os
 import bpy
 import json
+import time
 import logging
 import requests
 from bpy.app.handlers import persistent
@@ -192,10 +193,15 @@ class eMonitorUpdate (bpy.types.Operator):
 
         wm.emonitor_lastFrame = scene.frame_current
 
+        wm.emonitor_TimeCost = int(time.time()) - wm.emonitor_StartTime
+        if self.render_status == "RENDER_COMPLETE":
+            emon_data['time_cost'] = wm.emonitor_TimeCost
+
         # print (emon_data)
         if self.render_status == "RENDER_START":
             wm.emonitor_RenderingFrame = True
             wm.emonitor_frameCount += 1
+            wm.emonitor_StartTime = int(time.time())
 
         self.api_url = "http://monitor.eibriel.com"
         if 'edev' in context.scene:
@@ -335,6 +341,7 @@ def register():
     wm = bpy.types.WindowManager
     bpy.types.INFO_MT_render.append(buttons_emonitor)
     wm.emonitor_StartTime = IntProperty(options={'HIDDEN', 'SKIP_SAVE'})
+    wm.emonitor_TimeCost = IntProperty(options={'HIDDEN', 'SKIP_SAVE'})
     wm.emonitor_RenderingFrame = BoolProperty(
         name="Rendering Frame", default=False, options={'HIDDEN', 'SKIP_SAVE'})
     wm.emonitor_RenderingJob = BoolProperty(

@@ -133,6 +133,8 @@ class JobApi(Resource):
         renderJobs = MongoConnection.connect()
         emon_data = jobModel()
         emon_data['status'] = str(request.form['status'])
+        if 'time_cost' in request.form:
+            emon_data['time_cost'] = int(request.form['time_cost']
         emon_data['engine'] = str(request.form['engine'])
         emon_data['freestyle'] = request.form['freestyle']=="True"
         emon_data['compositor'] = request.form['compositor']=="True"
@@ -480,6 +482,7 @@ class jobModel(Document):
         'frame_end': int,
         'frame_current': int,
         'status': str,
+        'time_cost': int,
         'time_init': datetime,
         'last_access': datetime,
         'engine_data': None,
@@ -502,6 +505,7 @@ class jobModel(Document):
             'JOB_CANCELLED',
             'RENDER_COMPLETE',
             ]),
+        'time_cost': Document.min_val(0),
         'time_init': Document.any_val(),
         'last_access': Document.any_val(),
         'engine_data': Document.if_type_in([cyclesModel, blenderInternalModel]),
