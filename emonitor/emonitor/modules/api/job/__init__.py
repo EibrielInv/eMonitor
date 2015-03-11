@@ -77,6 +77,8 @@ class JobApi(Resource):
         data['frame_end'] = data_client['frame_end']
         data['frame_current'] = data_client['frame_current']
         data['time_init'] = time.mktime(data_client['time_init'].timetuple())
+        if 'time_cost' in data_client:
+            data['time_cost'] = data_client['time_cost']
 
         engine_data = data_client['engine_data']
 
