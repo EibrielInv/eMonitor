@@ -202,13 +202,13 @@ class JobApi(Resource):
         try:
             sys_data = json.loads(request.form['system_data'])
             system_data = systemModel()
-            system_data['processor_name'] = str(sys_data['processor_name'])
-            system_data['machine'] = str(sys_data['machine'])
-            system_data['version'] = str(sys_data['version'])
-            system_data['platform'] = str(sys_data['platform'])
-            system_data['system'] = str(sys_data['system'])
-            system_data['processor'] = str(sys_data['processor'])
-            system_data['hostname'] = str(sys_data['hostname'])
+            system_data['processor_name'] = sys_data['processor_name']
+            system_data['machine'] = sys_data['machine']
+            system_data['version'] = sys_data['version']
+            system_data['platform'] = sys_data['platform']
+            system_data['system'] = sys_data['system']
+            system_data['processor'] = sys_data['processor']
+            system_data['hostname'] = sys_data['hostname']
             emon_data['system_data'] = system_data
         except:
             pass
@@ -536,6 +536,7 @@ class jobModel(Document):
         'time_init': datetime,
         'last_access': datetime,
         'engine_data': None,
+        'system_data': None,
     }
 
     validators = {
