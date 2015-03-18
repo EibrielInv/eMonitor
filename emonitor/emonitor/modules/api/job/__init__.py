@@ -209,6 +209,7 @@ class JobApi(Resource):
             system_data['system'] = str(sys_data['system'])
             system_data['processor'] = str(sys_data['processor'])
             system_data['hostname'] = str(sys_data['hostname'])
+            emon_data['system_data'] = system_data
         except:
             pass
 
