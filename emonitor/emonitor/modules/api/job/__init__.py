@@ -199,15 +199,18 @@ class JobApi(Resource):
             bi_data['use_ambient_occlusion'] = engine_data['use_ambient_occlusion']
             emon_data['engine_data'] = bi_data
 
-        sys_data = json.loads(request.form['system_data'])
-        system_data = systemModel()
-        system_data['processor_name'] = str(sys_data['processor_name'])
-        system_data['machine'] = str(sys_data['machine'])
-        system_data['version'] = str(sys_data['version'])
-        system_data['platform'] = str(sys_data['platform'])
-        system_data['system'] = str(sys_data['system'])
-        system_data['processor'] = str(sys_data['processor'])
-        system_data['hostname'] = str(sys_data['hostname'])
+        try:
+            sys_data = json.loads(request.form['system_data'])
+            system_data = systemModel()
+            system_data['processor_name'] = str(sys_data['processor_name'])
+            system_data['machine'] = str(sys_data['machine'])
+            system_data['version'] = str(sys_data['version'])
+            system_data['platform'] = str(sys_data['platform'])
+            system_data['system'] = str(sys_data['system'])
+            system_data['processor'] = str(sys_data['processor'])
+            system_data['hostname'] = str(sys_data['hostname'])
+        except:
+            pass
 
         jobpath = os.path.join(app.config['THUMBNAIL_STORAGE'], job_id)
         if not os.path.exists(jobpath):
