@@ -19,7 +19,7 @@
 bl_info = {
     "name": "eMonitor",
     "author": "Eibriel",
-    "version": (0, 2, 2),
+    "version": (0, 2, 3),
     "blender": (2, 73, 0),
     "location": "Image > Send to eMonitor",
     "description": "Monitor your render on the Web",
@@ -29,11 +29,15 @@ bl_info = {
     "category": "Eibriel"}
 
 import os
+import re
 import bpy
 import json
 import time
+import subprocess
+import socket
 import logging
 import requests
+import platform
 from bpy.app.handlers import persistent
 from bpy.props import IntProperty, BoolProperty, StringProperty
 
@@ -96,7 +100,11 @@ class eMonitorUpdate (bpy.types.Operator):
         do = True
         if self.render_status == "":
             do = False
-        if bpy.app.background:
+
+        background = False
+        if 'emonitor_background' in scn:
+            background = True
+        if bpy.app.background and not background:
             do = False
 
         if scn.render.use_sequencer and scn.sequence_editor:
@@ -145,13 +153,55 @@ class eMonitorUpdate (bpy.types.Operator):
 
         return json.dumps(data)
 
+    def get_processor_name(self):
+        if platform.system() == "Windows":
+            return platform.processor()
+        elif platform.system() == "Darwin":
+            import os
+            os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
+            command ="sysctl -n machdep.cpu.brand_string"
+            return subprocess.check_output(command).strip()
+        elif platform.system() == "Linux":
+            command = "cat /proc/cpuinfo"
+            all_info = str(subprocess.check_output(command, shell=True).strip())
+            num = 0
+            model = ""
+            for line in all_info.split("\\n"):
+                if "model name" in line:
+                    model = re.sub( ".*model name.*:", "", line,1)
+                    num += 1
+            return "{0} x{1}".format(model, num)
+        return ""
+
+    def get_system_data(self, context):
+        system = {
+            #'cpu_count': psutil.cpu_count(),
+            #'cpu_nological': psutil.cpu_count(logical=False),
+            #'virtual_memory': psutil.virtual_memory(),
+            #'swap_memory': psutil.swap_memory(),
+            'processor_name': self.get_processor_name(),
+
+            'machine': platform.machine(),
+            'version': platform.version(),
+            'platform': platform.platform(),
+            'system': platform.system(),
+            'processor': platform.processor(),
+
+            'hostname': socket.gethostname(),
+        }
+        return json.dumps(system)
+
 
     def execute(self, context):
         scene = context.scene
         D = bpy.data
         wm = bpy.context.window_manager
 
-        if not wm.emonitor_enabled:
+        background = False
+        if 'emonitor_background' in scene:
+            background = True
+
+        if not wm.emonitor_enabled and not background:
             return {'FINISHED'}
 
         if D.filepath == '':
@@ -202,6 +252,7 @@ class eMonitorUpdate (bpy.types.Operator):
             wm.emonitor_RenderingFrame = True
             wm.emonitor_frameCount += 1
             wm.emonitor_StartTime = int(time.time())
+            emon_data['system_data'] = self.get_system_data(context)
 
         self.api_url = "http://monitor.eibriel.com"
         if 'edev' in context.scene:
@@ -233,10 +284,12 @@ class eMonitorUpdate (bpy.types.Operator):
             tmpfolder = context.user_preferences.filepaths.temporary_directory
             filepath = os.path.join(
                 tmpfolder, 'thumbnail_{0}.png'.format(juuid))
-            bpy.data.images["Render Result"].save_render(filepath)
-            render_file = [('images', ('thumbnail.png',
-                                       open(filepath, 'rb'),
-                                       'image/png'))]
+            render_file = None
+            if "Render Result" in bpy.data.images:
+                bpy.data.images["Render Result"].save_render(filepath)
+                render_file = [('images', ('thumbnail.png',
+                                        open(filepath, 'rb'),
+                                        'image/png'))]
             apiurl = "{0}/api/job/{1}".format(self.api_url, juuid)
             try:
                 r = requests.patch(apiurl,
@@ -270,6 +323,7 @@ class eMonitorUpdate (bpy.types.Operator):
                 return {'FINISHED'}
             rlist = json.loads(r.text)
 
+        print (wm.emonitor_JobUUID)
         return {'FINISHED'}
 
 

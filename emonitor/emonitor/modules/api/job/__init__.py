@@ -117,6 +117,18 @@ class JobApi(Resource):
         elif data_client['engine']=='BLENDER_RENDER':
             data['use_ambient_occlusion'] = engine_data['use_ambient_occlusion']
 
+        try:
+            system_data = data_client['system_data']
+            data['processor_name'] = system_data['processor_name']
+            data['machine'] = system_data['machine']
+            data['version'] = system_data['version']
+            data['platform'] = system_data['platform']
+            data['system'] = system_data['system']
+            data['processor'] = system_data['processor']
+            data['hostname'] = system_data['hostname']
+        except:
+            pass
+
         emon_data = jobModel()
         emon_data['last_access'] = datetime.now()
         key = {'_id': ObjectId(job_id)}
@@ -186,6 +198,16 @@ class JobApi(Resource):
             bi_data = blenderInternalModel()
             bi_data['use_ambient_occlusion'] = engine_data['use_ambient_occlusion']
             emon_data['engine_data'] = bi_data
+
+        sys_data = json.loads(request.form['system_data'])
+        system_data = systemModel()
+        system_data['processor_name'] = str(sys_data['processor_name'])
+        system_data['machine'] = str(sys_data['machine'])
+        system_data['version'] = str(sys_data['version'])
+        system_data['platform'] = str(sys_data['platform'])
+        system_data['system'] = str(sys_data['system'])
+        system_data['processor'] = str(sys_data['processor'])
+        system_data['hostname'] = str(sys_data['hostname'])
 
         jobpath = os.path.join(app.config['THUMBNAIL_STORAGE'], job_id)
         if not os.path.exists(jobpath):
@@ -472,6 +494,28 @@ class cyclesModel(Document):
         return '<Cycles {0}>'.format(self.name)
 
 
+class systemModel(Document):
+    structure = {
+        'processor_name': str,
+        'machine': str,
+        'version': str,
+        'platform': str,
+        'system': str,
+        'processor': str,
+        'hostname': str,
+    }
+
+    validators = {
+        'processor_name': Document.any_val(),
+        'machine': Document.any_val(),
+        'version': Document.any_val(),
+        'platform': Document.any_val(),
+        'system': Document.any_val(),
+        'processor': Document.any_val(),
+        'hostname': Document.any_val(),
+    }
+
+
 class jobModel(Document):
     structure = {
         'name': str,
@@ -511,6 +555,7 @@ class jobModel(Document):
         'time_init': Document.any_val(),
         'last_access': Document.any_val(),
         'engine_data': Document.if_type_in([cyclesModel, blenderInternalModel]),
+        'system_data': Document.if_type_in([systemModel]),
     }
 
     def __repr__(self):
