@@ -157,10 +157,13 @@ class eMonitorUpdate (bpy.types.Operator):
         if platform.system() == "Windows":
             return platform.processor()
         elif platform.system() == "Darwin":
-            import os
+            #import os
             os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
-            command ="sysctl -n machdep.cpu.brand_string"
-            return subprocess.check_output(command).strip()
+            command =["sysctl", "-n", "machdep.cpu.brand_string"]
+            cpu_name = subprocess.check_output(command).strip().decode('ascii')
+            command =["sysctl", "-n", "machdep.cpu.thread_count"]
+            thread_count = subprocess.check_output(command).strip().decode('ascii')
+            return "{0} x{1}".format(cpu_name, thread_count)
         elif platform.system() == "Linux":
             command = "cat /proc/cpuinfo"
             all_info = str(subprocess.check_output(command, shell=True).strip())
